@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 1900" font-family="Inter, Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+<rect width="2600" height="1900" fill="#ffffff"/>
+<text x="50" y="60" font-size="34" font-weight="700" fill="#0f172a">EatCare 시스템 ERD — 피터 첸 표기법</text>
+<text x="50" y="92" font-size="16" fill="#64748b">직사각형=개체, 마름모=관계, 타원=속성 (밑줄=기본키), 선 위 1·M·N=카디널리티</text>
+<line x1="200.7" y1="780.1" x2="335.2" y2="885.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="308.5" y1="736.8" x2="366.3" y2="885.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="433.6" y1="736.9" x2="390.2" y2="885.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="500.5" y1="820.2" x2="422.3" y2="885.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="170.1" y1="880.4" x2="280.0" y2="901.1" stroke="#475569" stroke-width="1.6"/>
+<line x1="167.6" y1="968.1" x2="280.0" y2="942.6" stroke="#475569" stroke-width="1.6"/>
+<line x1="210.3" y1="1054.9" x2="336.0" y2="955.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="340.6" y1="1073.1" x2="371.0" y2="955.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="475.7" y1="1063.6" x2="403.3" y2="955.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="895.8" y1="435.8" x2="965.0" y2="505.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1000.0" y1="417.0" x2="1000.0" y2="505.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1112.8" y1="435.6" x2="1037.8" y2="505.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1489.8" y1="150.2" x2="1557.0" y2="205.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1600.0" y1="132.0" x2="1600.0" y2="205.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1710.2" y1="150.2" x2="1643.0" y2="205.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2320.0" y1="437.0" x2="2270.0" y2="505.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2421.0" y1="483.0" x2="2300.0" y2="510.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2458.0" y1="562.0" x2="2300.0" y2="540.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2438.0" y1="641.0" x2="2300.0" y2="560.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2379.0" y1="708.0" x2="2290.0" y2="575.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2292.0" y1="764.0" x2="2245.0" y2="575.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2323.9" y1="1145.0" x2="2245.7" y2="1205.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2377.5" y1="1240.0" x2="2300.0" y2="1240.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="2323.9" y1="1335.0" x2="2245.7" y2="1275.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1055.0" y1="1363.0" x2="1150.0" y2="1275.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1103.0" y1="1429.0" x2="1170.0" y2="1275.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1296.0" y1="1359.0" x2="1250.0" y2="1275.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1052.1" y1="1654.5" x2="1100.0" y2="1669.2" stroke="#475569" stroke-width="1.6"/>
+<line x1="1017.0" y1="1742.8" x2="1100.0" y2="1723.4" stroke="#475569" stroke-width="1.6"/>
+<line x1="1104.3" y1="1804.1" x2="1167.8" y2="1735.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1274.6" y1="1803.7" x2="1225.2" y2="1735.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1370.6" y1="1746.5" x2="1300.0" y2="1727.3" stroke="#475569" stroke-width="1.6"/>
+<line x1="437.1" y1="885.0" x2="652.2" y2="753.2" stroke="#475569" stroke-width="2.0"/>
+<rect x="478.7" y="855.9" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="491.7" y="872.9" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">M</text>
+<line x1="942.9" y1="575.0" x2="727.8" y2="706.8" stroke="#475569" stroke-width="2.0"/>
+<rect x="875.3" y="580.1" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="888.3" y="597.1" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="757.1" y1="808.9" x2="714.7" y2="759.0" stroke="#475569" stroke-width="1.6"/>
+<line x1="1530.0" y1="275.0" x2="1342.4" y2="368.8" stroke="#475569" stroke-width="2.0"/>
+<rect x="1469.5" y="271.1" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1482.5" y="288.1" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">1</text>
+<line x1="1070.0" y1="505.0" x2="1257.6" y2="411.2" stroke="#475569" stroke-width="2.0"/>
+<rect x="1104.5" y="484.9" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1117.5" y="501.9" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="1670.0" y1="275.0" x2="1857.6" y2="368.8" stroke="#475569" stroke-width="2.0"/>
+<rect x="1692.0" y="296.2" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1705.0" y="313.2" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">M</text>
+<line x1="2130.0" y1="505.0" x2="1942.4" y2="411.2" stroke="#475569" stroke-width="2.0"/>
+<rect x="2082.0" y="459.8" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="2095.0" y="476.8" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="1963.8" y1="306.2" x2="1922.8" y2="360.1" stroke="#475569" stroke-width="1.6"/>
+<line x1="480.0" y1="938.9" x2="1636.9" y2="1158.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="718.9" y="988.9" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="731.9" y="1005.9" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">1</text>
+<line x1="2100.0" y1="1226.0" x2="1768.4" y2="1179.6" stroke="#475569" stroke-width="2.0"/>
+<rect x="2016.0" y="1189.9" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="2029.0" y="1206.9" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="2200.0" y1="575.0" x2="2200.0" y2="850.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="2173.0" y="623.5" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="2186.0" y="640.5" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">1</text>
+<line x1="2200.0" y1="1205.0" x2="2200.0" y2="930.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="2201.0" y="1132.5" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="2214.0" y="1149.5" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="469.7" y1="955.0" x2="742.1" y2="1061.3" stroke="#475569" stroke-width="2.0"/>
+<rect x="511.5" y="979.4" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="524.5" y="996.4" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">1</text>
+<line x1="1110.3" y1="1205.0" x2="837.9" y2="1098.7" stroke="#475569" stroke-width="2.0"/>
+<rect x="1042.5" y="1156.6" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1055.5" y="1173.6" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="1586.0" y1="275.0" x2="1413.6" y2="706.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="1522.1" y="352.6" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1535.1" y="369.6" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">M</text>
+<line x1="1214.0" y1="1205.0" x2="1386.4" y2="774.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="1251.9" y="1103.4" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1264.9" y="1120.4" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<line x1="1468.2" y1="675.6" x2="1428.8" y2="712.8" stroke="#475569" stroke-width="1.6"/>
+<line x1="1200.0" y1="1275.0" x2="1200.0" y2="1430.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="1173.0" y="1297.1" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1186.0" y="1314.1" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">1</text>
+<line x1="1200.0" y1="1665.0" x2="1200.0" y2="1510.0" stroke="#475569" stroke-width="2.0"/>
+<rect x="1201.0" y="1618.9" width="26" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1214.0" y="1635.9" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">N</text>
+<rect x="280.0" y="885.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="380.0" y="928.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">MEMBER</text>
+<rect x="900.0" y="505.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="1000.0" y="548.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">DISEASE</text>
+<rect x="1500.0" y="205.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="1600.0" y="248.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">NUTRIENT</text>
+<rect x="2100.0" y="505.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="2200.0" y="548.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">FOOD</text>
+<rect x="2100.0" y="1205.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="2200.0" y="1248.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">DIET_RECORD</text>
+<rect x="1100.0" y="1205.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="1200.0" y="1248.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">DAILY_SUMMARY</text>
+<rect x="1100.0" y="1665.0" width="200" height="70" rx="4" fill="#dbe4f0" stroke="#334155" stroke-width="2.5"/>
+<text x="1200.0" y="1708.0" font-size="22" font-weight="700" fill="#0f172a" text-anchor="middle">NOTIFICATION</text>
+<path d="M690 690.0 L780.0 730 L690 770.0 L600.0 730 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="690.0" y="736.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">가진다</text>
+<path d="M1300 350.0 L1390.0 390 L1300 430.0 L1210.0 390 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="1300.0" y="396.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">기준이된다</text>
+<path d="M1900 350.0 L1990.0 390 L1900 430.0 L1810.0 390 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="1900.0" y="396.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">함유한다</text>
+<path d="M1700 1130.0 L1790.0 1170 L1700 1210.0 L1610.0 1170 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="1700.0" y="1176.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">기록한다</text>
+<path d="M2200 850.0 L2290.0 890 L2200 930.0 L2110.0 890 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="2200.0" y="896.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">포함된다</text>
+<path d="M790 1040.0 L880.0 1080 L790 1120.0 L700.0 1080 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="790.0" y="1086.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">요약된다</text>
+<path d="M1400 700.0 L1490.0 740 L1400 780.0 L1310.0 740 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="1400.0" y="746.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">집계한다</text>
+<path d="M1200 1430.0 L1290.0 1470 L1200 1510.0 L1110.0 1470 Z" fill="#fde9b4" stroke="#334155" stroke-width="2.3"/>
+<text x="1200.0" y="1476.0" font-size="17" font-weight="700" fill="#7c2d12" text-anchor="middle">발생시킨다</text>
+<ellipse cx="175.0" cy="760.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="175.0" y="765.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">회원코드</text>
+<ellipse cx="300.0" cy="715.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="300.0" y="720.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">이름</text>
+<ellipse cx="440.0" cy="715.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="440.0" y="720.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">출생년도</text>
+<ellipse cx="525.0" cy="800.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="525.0" y="805.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">성별</text>
+<ellipse cx="115.0" cy="870.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="115.0" y="875.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">이메일</text>
+<ellipse cx="115.0" cy="980.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="115.0" y="985.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">비밀번호</text>
+<ellipse cx="185.0" cy="1075.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="185.0" y="1080.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">가입일</text>
+<ellipse cx="335.0" cy="1095.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="335.0" y="1100.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">역할</text>
+<ellipse cx="490.0" cy="1085.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="490.0" y="1090.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">계정상태</text>
+<ellipse cx="875.0" cy="415.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="875.0" y="420.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">질환코드</text>
+<ellipse cx="1000.0" cy="395.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1000.0" y="400.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">질환명</text>
+<ellipse cx="1135.0" cy="415.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1135.0" y="420.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">일일상한값</text>
+<ellipse cx="1465.0" cy="130.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="1465.0" y="135.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">영양소코드</text>
+<ellipse cx="1600.0" cy="110.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1600.0" y="115.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">영양소명</text>
+<ellipse cx="1735.0" cy="130.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1735.0" y="135.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">단위</text>
+<ellipse cx="2330.0" cy="415.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="2330.0" y="420.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">식품코드</text>
+<ellipse cx="2480.0" cy="480.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2480.0" y="485.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">식품명</text>
+<ellipse cx="2520.0" cy="565.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2520.0" y="570.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">기준량</text>
+<ellipse cx="2490.0" cy="650.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2490.0" y="655.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">기준단위</text>
+<ellipse cx="2410.0" cy="725.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2410.0" y="730.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">대분류</text>
+<ellipse cx="2300.0" cy="785.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2300.0" y="790.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">검색명</text>
+<ellipse cx="2350.0" cy="1125.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="2350.0" y="1130.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">기록코드</text>
+<ellipse cx="2440.0" cy="1240.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2440.0" y="1245.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">섭취량</text>
+<ellipse cx="2350.0" cy="1355.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="2350.0" y="1360.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">기록일시</text>
+<ellipse cx="1010.0" cy="1375.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="1010.0" y="1380.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">요약코드</text>
+<ellipse cx="1080.0" cy="1448.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1080.0" y="1453.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">날짜</text>
+<ellipse cx="1330.0" cy="1375.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1330.0" y="1380.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">위험도</text>
+<ellipse cx="1005.0" cy="1640.0" rx="62.5" ry="22.0" fill="#cee0bd" stroke="#334155" stroke-width="1.8"/>
+<text x="1005.0" y="1645.0" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle" text-decoration="underline">알림코드</text>
+<ellipse cx="965.0" cy="1755.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="965.0" y="1760.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">알림유형</text>
+<ellipse cx="1085.0" cy="1825.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1085.0" y="1830.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">알림내용</text>
+<ellipse cx="1290.0" cy="1825.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1290.0" y="1830.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">발송일시</text>
+<ellipse cx="1420.0" cy="1760.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1420.0" y="1765.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">읽음여부</text>
+<ellipse cx="775.0" cy="830.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="775.0" y="835.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">등록일</text>
+<ellipse cx="1980.0" cy="285.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1980.0" y="290.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">함량</text>
+<ellipse cx="1490.0" cy="655.0" rx="62.5" ry="22.0" fill="#e7f0e1" stroke="#334155" stroke-width="1.8"/>
+<text x="1490.0" y="660.0" font-size="16" font-weight="500" fill="#0f172a" text-anchor="middle">누적량</text>
+<rect x="50" y="1785" width="640" height="95" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.4"/>
+<rect x="70" y="1803" width="92" height="36" rx="3" fill="#dbe4f0" stroke="#334155" stroke-width="2.2"/>
+<text x="116" y="1826" font-size="14" text-anchor="middle" fill="#0f172a" font-weight="700">개체</text>
+<text x="116" y="1863" font-size="14" text-anchor="middle" fill="#475569">Entity</text>
+<path d="M260 1800.0 L315.0 1821 L260 1842.0 L205.0 1821 Z" fill="#fde9b4" stroke="#334155" stroke-width="2"/>
+<text x="260" y="1826" font-size="14" text-anchor="middle" fill="#7c2d12" font-weight="700">관계</text>
+<text x="260" y="1863" font-size="14" text-anchor="middle" fill="#475569">Relationship</text>
+<ellipse cx="425" cy="1821" rx="55" ry="20" fill="#e7f0e1" stroke="#334155" stroke-width="1.6"/>
+<text x="425" y="1826" font-size="14" text-anchor="middle" fill="#0f172a">속성</text>
+<text x="425" y="1863" font-size="14" text-anchor="middle" fill="#475569">Attribute</text>
+<ellipse cx="590" cy="1821" rx="55" ry="20" fill="#cee0bd" stroke="#334155" stroke-width="1.6"/>
+<text x="590" y="1826" font-size="14" text-anchor="middle" fill="#0f172a" font-weight="700" text-decoration="underline">기본키</text>
+<text x="590" y="1863" font-size="14" text-anchor="middle" fill="#475569">Primary Key</text>
+</svg>

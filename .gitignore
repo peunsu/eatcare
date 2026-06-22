@@ -1,7 +1,6 @@
 server.log
 daily_summary.log
 CLAUDE.md
-documents/
 data/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
