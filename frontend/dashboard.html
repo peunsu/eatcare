@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>(function(){var t=localStorage.getItem("nutri_theme")||"light";var e=document.documentElement;e.setAttribute("data-theme",t);e.setAttribute("data-bs-theme",t);})();</script>
+  <title>EatCare · 내 식단</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css?v=24" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand bg-white shadow-sm px-3 mb-3">
+    <a class="navbar-brand section-title me-3" href="/dashboard.html" style="text-decoration:none">🥗 EatCare</a>
+    <div class="navbar-nav flex-row gap-1 me-auto">
+      <button class="btn btn-outline-secondary btn-sm" onclick="goBack()">← 뒤로</button>
+      <a class="btn btn-primary btn-sm" href="/dashboard.html">내 대시보드</a>
+      <a class="btn btn-outline-secondary btn-sm" href="/food.html">식품 정보</a>
+      <a id="adminLink" class="btn btn-outline-secondary btn-sm" href="/admin.html" style="display:none">운영자 대시보드</a>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="who" class="text-muted small"></span>
+      <button class="btn btn-outline-primary btn-sm" onclick="logout()">로그아웃</button>
+      <button id="themeBtn" class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <!-- 프로필 (보기/편집) -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>👤 내 프로필</span>
+            <button id="editBtn" class="btn btn-outline-secondary btn-sm" onclick="enterEdit()">편집</button>
+          </div>
+          <div class="card-body">
+            <!-- 보기 모드 -->
+            <div id="profileView">
+              <div class="mb-1"><span class="text-muted small me-2">이름</span><span id="v_name"></span></div>
+              <div class="mb-1"><span class="text-muted small me-2">출생년도</span><span id="v_birth"></span></div>
+              <div class="mb-1"><span class="text-muted small me-2">성별</span><span id="v_gender"></span></div>
+              <hr class="my-3" />
+              <h6 class="section-title mb-2">기저질환</h6>
+              <div id="v_diseases"></div>
+            </div>
+            <!-- 편집 모드 -->
+            <div id="profileEdit" style="display:none">
+              <div class="row g-2">
+                <div class="col-12"><input id="p_name" class="form-control" placeholder="이름" /></div>
+                <div class="col-6"><input id="p_birth" type="number" class="form-control" placeholder="출생년도" /></div>
+                <div class="col-6">
+                  <select id="p_gender" class="form-select">
+                    <option value="">성별</option><option value="M">남</option><option value="F">여</option>
+                  </select>
+                </div>
+              </div>
+              <hr class="my-3" />
+              <h6 class="section-title mb-1">기저질환</h6>
+              <p class="text-muted small mb-2">앓고 있는 질환을 선택하세요. 저장 시 함께 반영됩니다.</p>
+              <div id="diseaseBox"></div>
+              <div class="mt-3">
+                <button class="btn btn-primary btn-sm" onclick="saveProfile()">저장</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit()">취소</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 식단 기록 (날짜 기준) -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>📝 식단 기록</span>
+            <div class="d-flex align-items-center gap-1">
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(-1)" title="이전 날">◀</button>
+              <input id="diet_date" type="date" class="form-control form-control-sm" style="width:auto" onchange="onDateChange()" />
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(1)" title="다음 날">▶</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="goToday()">오늘</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <input id="foodq" class="form-control mb-2" placeholder="식품명을 입력하면 자동으로 검색됩니다 (예: 피자)"
+                   autocomplete="off" oninput="onFoodInput()" />
+            <div id="foodResults" class="list-group mb-3" style="max-height:220px;overflow:auto"></div>
+            <h6 class="text-muted small" id="recordsTitle">기록</h6>
+            <div id="records"></div>
+          </div>
+        </div>
+
+        <!-- 알림 -->
+        <div class="card">
+          <div class="card-header">🔔 알림함</div>
+          <div class="card-body"><ul id="notis" class="list-group"></ul><div id="notisPager" class="d-flex justify-content-center align-items-center gap-2 mt-2"></div></div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <!-- 일일 영양 리포트 (식단 기록과 동일 날짜) -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>📊 일일 영양 리포트 <span class="kpi-help" data-tip="선택한 날짜의 섭취 영양소를 일일 상한 대비 %로 보여줍니다. 기저질환 관련 영양소는 강조되고, 상한 초과 시 빨간색으로 표시됩니다.">?</span></span>
+            <div class="d-flex align-items-center gap-1">
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(-1)" title="이전 날">◀</button>
+              <input id="report_date" type="date" class="form-control form-control-sm" style="width:auto" onchange="onReportDateChange()" />
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(1)" title="다음 날">▶</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="goToday()">오늘</button>
+            </div>
+          </div>
+          <div class="card-body" id="reportBox"></div>
+        </div>
+
+        <!-- 최근 영양소 추이 -->
+        <div class="card">
+          <div class="card-header">📈 최근 14일 영양소 추이 <span class="kpi-help" data-tip="최근 14일간 일자별 영양소 섭취량을 일일 상한 대비 %로 나타냅니다. 100% 점선을 넘으면 상한 초과입니다.">?</span></div>
+          <div class="card-body"><div style="height:240px"><canvas id="trendChart"></canvas></div></div>
+        </div>
+
+        <!-- 식품 분류별 섭취 (개인) -->
+        <div class="card">
+          <div class="card-header">🥗 최근 14일 식품 분류별 섭취 횟수 <span class="kpi-help" data-tip="최근 14일간 내가 기록한 식단을 식품 대분류별 섭취 횟수로 집계한 분포입니다.">?</span></div>
+          <div class="card-body"><div style="height:240px"><canvas id="myFoodCat"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="/js/common.js?v=19"></script>
+  <script>
+    requireAuth();
+    function goBack() {
+      if (history.length > 1) history.back();
+      else location.href = getRole() === "ADMIN" ? "/admin.html" : "/dashboard.html";
+    }
+    Chart.register(ChartDataLabels, HLINE_PLUGIN);
+    Chart.defaults.font.family = "Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+    if (getRole() === "ADMIN") document.getElementById("adminLink").style.display = "";
+    const GENDER = { M: "남", F: "여" };
+    const PALETTE = ["#3182f6", "#15b86a", "#ff9e2c", "#f04452", "#8b5cf6", "#06b6d4", "#eab308", "#64748b"];
+    let myFoodChart, trendChart, reportChart;
+
+    function shiftDate(delta) {
+      const el = document.getElementById("diet_date");
+      const d = new Date(el.value || new Date());
+      d.setDate(d.getDate() + delta);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (d > today) return;  // 미래 날짜 방지
+      el.value = d.toISOString().slice(0, 10);
+      onDateChange();
+    }
+    function goToday() {
+      document.getElementById("diet_date").value = new Date().toISOString().slice(0, 10);
+      onDateChange();
+    }
+    let me = {}, allDiseases = [], myDiseaseSet = new Set();
+
+    window.onThemeChange = () => { loadFoodCategory(); loadTrend(); };  // 다크모드 토글 시 차트 색 갱신
+    async function init() {
+      // 서로 독립인 초기 조회를 병렬화(워터폴 제거)
+      const [meRes, diseases] = await Promise.all([
+        api("/api/members/me"),
+        api("/api/members/diseases"),
+        loadMyDiseases(),
+      ]);
+      me = meRes;
+      allDiseases = diseases;
+      document.getElementById("who").textContent = me.name + " 님";
+      renderProfileView();
+      const td = new Date().toISOString().slice(0, 10);
+      document.getElementById("diet_date").value = td;
+      document.getElementById("report_date").value = td;
+      await Promise.all([loadRecords(), loadReport(), loadNotis(), loadFoodCategory(), loadTrend()]);
+    }
+
+    async function loadTrend() {
+      const t = await api("/api/reports/trend?days=14");
+      const dark = currentTheme() === "dark";
+      const txt = dark ? "#e8eaed" : "#191f28";
+      const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+      const labels = t.dates.map((d) => d.slice(5));
+      const datasets = t.nutrients.map((nu, i) => ({
+        label: nu.name,
+        data: nu.totals.map((v) => (nu.limit ? Math.round((v / nu.limit) * 100) : 0)),
+        _totals: nu.totals, _unit: nu.unit,
+        borderColor: PALETTE[i % PALETTE.length], backgroundColor: PALETTE[i % PALETTE.length],
+        tension: 0.3, pointRadius: 2, borderWidth: 2,
+      }));
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(document.getElementById("trendChart"), {
+        type: "line",
+        data: { labels, datasets },
+        options: { responsive: true, maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: txt, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+            y: { beginAtZero: true, grace: "10%", title: { display: true, text: "상한 대비 (%)", color: txt },
+              grid: { color: grid }, ticks: { color: txt } },
+          },
+          plugins: { legend: { position: "top", labels: { color: txt, boxWidth: 12, boxHeight: 12 } },
+            hLine: { value: 100, label: "상한 100%" },
+            datalabels: { display: false },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.dataset._totals[ctx.dataIndex]}${ctx.dataset._unit} · ${ctx.raw}%` } } } },
+      });
+    }
+
+    async function loadFoodCategory() {
+      const data = await api("/api/diet/category-summary?days=14");
+      const dark = currentTheme() === "dark";
+      const box = document.getElementById("myFoodCat");
+      if (!data.length) {
+        box.parentElement.innerHTML = "<p class='text-muted mb-0'>섭취 기록이 없습니다.</p>";
+        return;
+      }
+      if (myFoodChart) myFoodChart.destroy();
+      myFoodChart = new Chart(box, {
+        type: "doughnut",
+        data: { labels: data.map((x) => x.category),
+          datasets: [{ data: data.map((x) => x.count), backgroundColor: data.map((_, i) => PALETTE[i % PALETTE.length]) }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { boxWidth: 12, boxHeight: 12, padding: 10, color: dark ? "#e8eaed" : "#191f28" } },
+            datalabels: { color: "#fff", font: { weight: "700" },
+              formatter: (v, ctx) => { const t = ctx.dataset.data.reduce((a, b) => a + b, 0); return v / t >= 0.08 ? Math.round((v / t) * 100) + "%" : ""; } },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}건` } },
+          } },
+      });
+    }
+
+    async function loadMyDiseases() {
+      const mine = await api("/api/members/me/diseases");
+      myDiseaseSet = new Set(mine.map((d) => d.disease_code));
+    }
+
+    // ---- 프로필 보기/편집 ----
+    function renderProfileView() {
+      document.getElementById("v_name").textContent = me.name || "-";
+      document.getElementById("v_birth").textContent = me.birth_year || "-";
+      document.getElementById("v_gender").textContent = GENDER[me.gender] || "미설정";
+      const names = allDiseases.filter((d) => myDiseaseSet.has(d.code)).map((d) => d.name);
+      document.getElementById("v_diseases").innerHTML = names.length
+        ? names.map((n) => diseaseBadge(n)).join("")
+        : "<span class='text-muted'>없음</span>";
+    }
+    function enterEdit() {
+      document.getElementById("p_name").value = me.name || "";
+      document.getElementById("p_birth").value = me.birth_year || "";
+      document.getElementById("p_gender").value = me.gender || "";
+      document.getElementById("diseaseBox").innerHTML = allDiseases.map((d) => `
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="dz${d.code}" value="${d.code}" ${myDiseaseSet.has(d.code) ? "checked" : ""}>
+          <label class="form-check-label" for="dz${d.code}">
+            ${d.name} <small class="text-muted">(${d.nutrient_name} 상한 ${d.daily_limit}${d.unit})</small>
+          </label>
+        </div>`).join("");
+      document.getElementById("profileView").style.display = "none";
+      document.getElementById("profileEdit").style.display = "";
+      document.getElementById("editBtn").style.display = "none";
+    }
+    function cancelEdit() {
+      document.getElementById("profileEdit").style.display = "none";
+      document.getElementById("profileView").style.display = "";
+      document.getElementById("editBtn").style.display = "";
+    }
+    async function saveProfile() {
+      // 1) 프로필 필드
+      me = await api("/api/members/me", { method: "PUT", body: {
+        name: document.getElementById("p_name").value.trim(),
+        birth_year: parseInt(document.getElementById("p_birth").value) || null,
+        gender: document.getElementById("p_gender").value || null,
+      }});
+      // 2) 기저질환 (체크 상태와 비교해 추가/삭제)
+      const checked = new Set([...document.querySelectorAll("#diseaseBox input:checked")].map((c) => +c.value));
+      for (const code of checked) if (!myDiseaseSet.has(code))
+        await api("/api/members/me/diseases", { method: "POST", body: { disease_code: code } });
+      for (const code of myDiseaseSet) if (!checked.has(code))
+        await api("/api/members/me/diseases/" + code, { method: "DELETE" });
+      myDiseaseSet = checked;
+
+      document.getElementById("who").textContent = me.name + " 님";
+      renderProfileView();
+      cancelEdit();
+      await loadReport();  // 질환 변경 → 위험도 갱신
+    }
+
+    // ---- 식단 기록 (자동완성) ----
+    let searchSeq = 0, searchTimer;
+    function onFoodInput() {
+      clearTimeout(searchTimer);
+      const q = document.getElementById("foodq").value.trim();
+      if (!q) { document.getElementById("foodResults").innerHTML = ""; return; }
+      searchTimer = setTimeout(searchFood, 250);
+    }
+    async function searchFood() {
+      const q = document.getElementById("foodq").value.trim();
+      if (!q) { document.getElementById("foodResults").innerHTML = ""; return; }
+      const seq = ++searchSeq;
+      const foods = await api("/api/diet/foods?q=" + encodeURIComponent(q) + "&limit=10");
+      if (seq !== searchSeq) return;
+      document.getElementById("foodResults").innerHTML = foods.map((f) => `
+        <div class="list-group-item food-result d-flex justify-content-between align-items-center">
+          <span>${f.name}</span>
+          <span class="input-group" style="width:170px">
+            <input type="number" class="form-control form-control-sm" id="amt_${f.code}" placeholder="섭취 g" />
+            <button class="btn btn-sm btn-success" onclick="addRecord('${f.code}')">추가</button>
+          </span>
+        </div>`).join("") || "<div class='list-group-item text-muted small'>검색 결과 없음</div>";
+    }
+    function selectedDate() { return document.getElementById("diet_date").value; }
+    async function addRecord(code) {
+      const amt = parseFloat(document.getElementById("amt_" + code).value);
+      if (!amt || amt <= 0) return alert("섭취량을 입력하세요.");
+      const now = new Date();
+      const ts = `${selectedDate()}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`;
+      await api("/api/diet/records", { method: "POST", body: { food_code: code, amount: amt, recorded_at: ts } });
+      document.getElementById("foodq").value = "";
+      document.getElementById("foodResults").innerHTML = "";
+      await Promise.all([loadRecords(), loadReport(), loadNotis(), loadFoodCategory(), loadTrend()]);
+    }
+    async function loadRecords() {
+      const d = selectedDate();
+      document.getElementById("recordsTitle").textContent = "기록";
+      const recs = await api("/api/diet/records?date=" + d);
+      const rows = recs.map((r) => {
+        const tip = (r.nutrients || []).map((n) => `${n.name} ${n.amount}${n.unit}`).join(", ");
+        return `<tr>
+          <td><a href="/food.html?code=${encodeURIComponent(r.food_code)}&amt=${r.amount}" ${tip ? `data-tip="${tip}"` : ""} style="color:inherit;text-decoration:underline;text-underline-offset:2px">${r.food_name}</a>${r.category ? ` <span class="badge" style="background:var(--toss-blue-soft);color:var(--toss-blue)">${r.category}</span>` : ""}</td>
+          <td class="text-end text-nowrap">${r.amount}g</td>
+          <td class="text-end text-nowrap text-muted">${(r.recorded_at || "").slice(11, 16)}</td>
+          <td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="delRecord(${r.code})">삭제</button></td>
+        </tr>`;
+      }).join("");
+      document.getElementById("records").innerHTML = recs.length
+        ? `<table class="table table-sm align-middle mb-0"><thead><tr><th>식품</th><th class="text-end">섭취량</th><th class="text-end">시간</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+        : "<p class='text-muted small mb-0'>기록 없음</p>";
+    }
+    async function delRecord(code) {
+      await api("/api/diet/records/" + code, { method: "DELETE" });
+      await Promise.all([loadRecords(), loadReport(), loadNotis(), loadFoodCategory(), loadTrend()]);
+    }
+    function onDateChange() {
+      document.getElementById("report_date").value = document.getElementById("diet_date").value;
+      loadRecords(); loadReport();
+    }
+    function onReportDateChange() {
+      document.getElementById("diet_date").value = document.getElementById("report_date").value;
+      loadRecords(); loadReport();
+    }
+
+    // ---- 리포트 ----
+    async function loadReport() {
+      const d = selectedDate();
+      const rep = await api("/api/reports/daily?date=" + d);
+      const cls = RISK_CLASS[rep.risk] || "secondary";
+      const ns = rep.nutrients;  // 모든 영양소 (표준 상한 기준), monitored=질환관련
+      let html = `<div class="mb-2">위험도: <span class="badge risk-badge bg-${cls}">${rep.risk}</span></div>`;
+      html += ns.length ? `<div style="height:210px"><canvas id="reportChart"></canvas></div>`
+                        : "<p class='text-muted mb-0'>이 날짜의 섭취 기록이 없습니다.</p>";
+      document.getElementById("reportBox").innerHTML = html;
+
+      if (reportChart) { reportChart.destroy(); reportChart = null; }
+      if (ns.length) {
+        const dark = currentTheme() === "dark";
+        const txt = dark ? "#e8eaed" : "#191f28";
+        const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+        const gray = dark ? "rgba(148,163,184,.35)" : "rgba(148,163,184,.5)";
+        reportChart = new Chart(document.getElementById("reportChart"), {
+          type: "bar",
+          data: { labels: ns.map((n) => n.nutrient_name),
+            datasets: [{ data: ns.map((n) => (n.limit ? Math.round((n.total / n.limit) * 100) : 0)),
+              _amt: ns.map((n) => `${n.total}${n.unit}`),
+              backgroundColor: ns.map((n) => (n.monitored ? (n.exceeded ? "#f04452" : "#3182f6") : gray)), borderRadius: 5 }] },
+          options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
+            scales: { x: { grid: { display: false }, ticks: { color: txt } },
+              y: { beginAtZero: true, grace: "10%", title: { display: true, text: "상한 대비 (%)", color: txt }, grid: { color: grid }, ticks: { color: txt } } },
+            plugins: { legend: { display: false }, hLine: { value: 100, label: "상한 100%" },
+              datalabels: { anchor: "end", align: "top", textAlign: "center", color: txt, font: { weight: "700" }, formatter: (v, ctx) => [ctx.dataset._amt[ctx.dataIndex], v + "%"] },
+              tooltip: { callbacks: { label: (ctx) => `${ctx.dataset._amt[ctx.dataIndex]} · ${ctx.parsed.y}%` } } } },
+        });
+      }
+    }
+
+    // ---- 알림 ----
+    let allNotis = [], notiPage = 1;
+    const NOTI_PER = 5;
+    async function loadNotis() {
+      allNotis = await api("/api/notifications");  // 최신순(백엔드 sent_at 정렬)
+      notiPage = 1;
+      renderNotis();
+    }
+    function renderNotis() {
+      const pages = Math.max(1, Math.ceil(allNotis.length / NOTI_PER));
+      notiPage = Math.min(notiPage, pages);
+      const slice = allNotis.slice((notiPage - 1) * NOTI_PER, notiPage * NOTI_PER);
+      document.getElementById("notis").innerHTML = slice.map((n) => `
+        <li class="list-group-item d-flex justify-content-between align-items-center ${n.is_read ? "text-muted" : ""}">
+          <span class="d-flex align-items-center"><span class="badge-cell">${notiBadge(n.type)}</span><span class="me-2 text-nowrap">${n.date}</span><small class="text-muted">${notiText(n.content)}</small></span>
+          ${n.is_read ? "" : `<button class="btn btn-sm btn-outline-secondary" onclick="readNoti(${n.code})">읽음</button>`}
+        </li>`).join("") || "<li class='list-group-item text-muted'>알림 없음</li>";
+      document.getElementById("notisPager").innerHTML = allNotis.length > NOTI_PER
+        ? `<button class="icon-btn" ${notiPage <= 1 ? "disabled" : ""} onclick="notiGo(${notiPage - 1})">‹</button>
+           <span class="text-muted small">${notiPage} / ${pages}</span>
+           <button class="icon-btn" ${notiPage >= pages ? "disabled" : ""} onclick="notiGo(${notiPage + 1})">›</button>` : "";
+    }
+    function notiGo(p) { notiPage = p; renderNotis(); }
+    async function readNoti(code) {
+      await api("/api/notifications/" + code + "/read", { method: "POST" });
+      const n = allNotis.find((x) => x.code === code); if (n) n.is_read = true;
+      renderNotis();
+    }
+
+    init();
+  </script>
+</body>
+</html>

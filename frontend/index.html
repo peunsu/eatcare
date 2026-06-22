@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>(function(){var t=localStorage.getItem("nutri_theme")||"light";var e=document.documentElement;e.setAttribute("data-theme",t);e.setAttribute("data-bs-theme",t);})();</script>
+  <title>EatCare · 로그인</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css?v=24" rel="stylesheet" />
+</head>
+<body>
+  <button id="themeBtn" class="btn btn-outline-secondary btn-sm" style="position:fixed;top:14px;right:14px;z-index:10" onclick="toggleTheme()">🌙</button>
+  <div class="landing">
+    <div class="landing-grid">
+      <!-- 브랜딩 / 소개 -->
+      <div class="landing-hero">
+        <div class="brand">🥗 EatCare</div>
+        <p class="tagline">기저질환에 맞춰 식단을 기록하고,<br>위험도와 영양 섭취를 한눈에 관리하세요.</p>
+        <div class="landing-features">
+          <div class="landing-feature">
+            <div class="ic">📝</div>
+            <div><div class="ft-t">간편한 식단 기록</div><div class="ft-d">먹은 음식을 검색해 바로 기록</div></div>
+          </div>
+          <div class="landing-feature">
+            <div class="ic">📊</div>
+            <div><div class="ft-t">영양 섭취 분석</div><div class="ft-d">일일 상한 대비 섭취량·추이 시각화</div></div>
+          </div>
+          <div class="landing-feature">
+            <div class="ic">🔔</div>
+            <div><div class="ft-t">위험도 알림</div><div class="ft-d">당뇨·고혈압·고지혈증 기준 자동 알림</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- 로그인 / 회원가입 -->
+      <div class="landing-form">
+        <ul class="nav nav-tabs mb-3" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#loginTab">로그인</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#signupTab">회원가입</button></li>
+        </ul>
+        <div class="tab-content">
+          <!-- 로그인 -->
+          <div class="tab-pane fade show active" id="loginTab">
+            <input id="li_email" type="email" autocapitalize="none" autocorrect="off" spellcheck="false" class="form-control mb-2" placeholder="이메일" onkeydown="if(event.key==='Enter')doLogin()" />
+            <input id="li_pw" type="password" autocomplete="current-password" class="form-control mb-3" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()" />
+            <button class="btn btn-primary w-100" onclick="doLogin()">로그인</button>
+            <p class="text-muted small mt-3 mb-0">운영자 예시: admin@nutrition.local / admin1234<br>사용자 예시: demo@nutrition.local / demo1234</p>
+          </div>
+          <!-- 회원가입 -->
+          <div class="tab-pane fade" id="signupTab">
+            <input id="su_name" class="form-control mb-2" placeholder="이름" />
+            <input id="su_email" type="email" autocapitalize="none" autocorrect="off" spellcheck="false" class="form-control mb-2" placeholder="이메일" />
+            <input id="su_pw" type="password" autocomplete="new-password" class="form-control mb-2" placeholder="비밀번호 (4자 이상)" />
+            <div class="row g-2 mb-3">
+              <div class="col"><input id="su_birth" type="number" class="form-control" placeholder="출생년도" /></div>
+              <div class="col">
+                <select id="su_gender" class="form-select">
+                  <option value="">성별</option><option value="M">남</option><option value="F">여</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-success w-100" onclick="doSignup()">회원가입</button>
+          </div>
+        </div>
+        <div id="msg" class="text-danger small mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/common.js?v=19"></script>
+  <script>
+    if (getToken()) location.href = getRole() === "ADMIN" ? "/admin.html" : "/dashboard.html";
+    const msg = (t) => (document.getElementById("msg").textContent = t);
+
+    async function doLogin() {
+      msg("");
+      try {
+        const r = await login(document.getElementById("li_email").value.trim(), document.getElementById("li_pw").value.trim());
+        setAuth(r.access_token, r.role);
+        location.href = r.role === "ADMIN" ? "/admin.html" : "/dashboard.html";
+      } catch (e) { msg(e.message); }
+    }
+    async function doSignup() {
+      msg("");
+      const body = {
+        name: document.getElementById("su_name").value.trim(),
+        email: document.getElementById("su_email").value.trim(),
+        password: document.getElementById("su_pw").value.trim(),
+        birth_year: parseInt(document.getElementById("su_birth").value) || null,
+        gender: document.getElementById("su_gender").value || null,
+      };
+      try {
+        const r = await api("/api/auth/signup", { method: "POST", body });
+        setAuth(r.access_token, r.role);
+        location.href = "/dashboard.html";
+      } catch (e) { msg(e.message); }
+    }
+  </script>
+</body>
+</html>

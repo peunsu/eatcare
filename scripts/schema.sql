@@ -1,0 +1,122 @@
+-- 개인 맞춤형 건강 및 식단 관리 시스템 스키마 (MariaDB / utf8mb4)
+-- 제안서 Relation Schema 기반. 식품코드는 실제 공공데이터 코드(문자열)에 맞춰 VARCHAR(32)로 조정.
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS NOTIFICATION;
+DROP TABLE IF EXISTS SUMMARY_NUTRIENT;
+DROP TABLE IF EXISTS DAILY_SUMMARY;
+DROP TABLE IF EXISTS DIET_RECORD;
+DROP TABLE IF EXISTS MEMBER_DISEASE;
+DROP TABLE IF EXISTS FOOD_NUTRIENT;
+DROP TABLE IF EXISTS MEMBER;
+DROP TABLE IF EXISTS DISEASE;
+DROP TABLE IF EXISTS FOOD;
+DROP TABLE IF EXISTS NUTRIENT;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 영양소
+CREATE TABLE NUTRIENT (
+  영양소코드 INT AUTO_INCREMENT PRIMARY KEY,
+  영양소명   VARCHAR(50)  NOT NULL,
+  단위       VARCHAR(20)  NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 식품
+CREATE TABLE FOOD (
+  식품코드   VARCHAR(32)  PRIMARY KEY,
+  식품명     VARCHAR(255) NOT NULL,
+  기준량     FLOAT        NOT NULL DEFAULT 100,
+  기준단위   VARCHAR(20)  NOT NULL DEFAULT 'g',
+  대분류     VARCHAR(50),
+  검색명     VARCHAR(255) AS (REPLACE(식품명, ' ', '')) STORED,
+  INDEX idx_food_category (대분류),
+  INDEX idx_food_search (검색명)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 질환 (기준이 되는 영양소 1종과 일일 상한값 보유)
+CREATE TABLE DISEASE (
+  질환코드   INT AUTO_INCREMENT PRIMARY KEY,
+  질환명     VARCHAR(50) NOT NULL,
+  영양소코드 INT         NOT NULL,
+  일일상한값 FLOAT       NOT NULL,
+  CONSTRAINT fk_disease_nutrient FOREIGN KEY (영양소코드)
+    REFERENCES NUTRIENT(영양소코드)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 회원
+CREATE TABLE MEMBER (
+  회원코드   INT AUTO_INCREMENT PRIMARY KEY,
+  이름       VARCHAR(50)  NOT NULL,
+  출생년도   INT,
+  성별       ENUM('M','F'),
+  이메일     VARCHAR(255) NOT NULL UNIQUE,
+  비밀번호   VARCHAR(255) NOT NULL,
+  가입일     DATE         NOT NULL,
+  역할       ENUM('USER','ADMIN')      NOT NULL DEFAULT 'USER',
+  계정상태   ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 식품-영양소 함량 (M:N)
+CREATE TABLE FOOD_NUTRIENT (
+  식품코드   VARCHAR(32) NOT NULL,
+  영양소코드 INT         NOT NULL,
+  함량       FLOAT       NOT NULL,
+  PRIMARY KEY (식품코드, 영양소코드),
+  CONSTRAINT fk_fn_food     FOREIGN KEY (식품코드)   REFERENCES FOOD(식품코드)       ON DELETE CASCADE,
+  CONSTRAINT fk_fn_nutrient FOREIGN KEY (영양소코드) REFERENCES NUTRIENT(영양소코드) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 회원-질환 (M:N)
+CREATE TABLE MEMBER_DISEASE (
+  회원코드 INT  NOT NULL,
+  질환코드 INT  NOT NULL,
+  등록일   DATE NOT NULL,
+  PRIMARY KEY (회원코드, 질환코드),
+  CONSTRAINT fk_md_member  FOREIGN KEY (회원코드) REFERENCES MEMBER(회원코드)   ON DELETE CASCADE,
+  CONSTRAINT fk_md_disease FOREIGN KEY (질환코드) REFERENCES DISEASE(질환코드) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 식단기록
+CREATE TABLE DIET_RECORD (
+  기록코드   INT AUTO_INCREMENT PRIMARY KEY,
+  회원코드   INT         NOT NULL,
+  식품코드   VARCHAR(32) NOT NULL,
+  섭취량     FLOAT       NOT NULL,
+  기록일시   DATETIME    NOT NULL,
+  CONSTRAINT fk_dr_member FOREIGN KEY (회원코드) REFERENCES MEMBER(회원코드) ON DELETE CASCADE,
+  CONSTRAINT fk_dr_food   FOREIGN KEY (식품코드) REFERENCES FOOD(식품코드),
+  INDEX idx_dr_member_date (회원코드, 기록일시)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 일일요약 (회원코드+날짜 UNIQUE)
+CREATE TABLE DAILY_SUMMARY (
+  요약코드 INT AUTO_INCREMENT PRIMARY KEY,
+  회원코드 INT  NOT NULL,
+  날짜     DATE NOT NULL,
+  위험도   ENUM('정상','주의','위험','경고') NOT NULL DEFAULT '정상',
+  UNIQUE KEY uk_summary_member_date (회원코드, 날짜),
+  CONSTRAINT fk_ds_member FOREIGN KEY (회원코드) REFERENCES MEMBER(회원코드) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 요약-영양소 누적량 (M:N)
+CREATE TABLE SUMMARY_NUTRIENT (
+  요약코드   INT NOT NULL,
+  영양소코드 INT NOT NULL,
+  누적량     FLOAT NOT NULL,
+  PRIMARY KEY (요약코드, 영양소코드),
+  CONSTRAINT fk_sn_summary  FOREIGN KEY (요약코드)   REFERENCES DAILY_SUMMARY(요약코드) ON DELETE CASCADE,
+  CONSTRAINT fk_sn_nutrient FOREIGN KEY (영양소코드) REFERENCES NUTRIENT(영양소코드)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 알림
+CREATE TABLE NOTIFICATION (
+  알림코드 INT AUTO_INCREMENT PRIMARY KEY,
+  요약코드 INT NOT NULL,
+  알림유형 ENUM('WARNING','DANGER','CRITICAL') NOT NULL,
+  알림내용 VARCHAR(255) NOT NULL,
+  발송일시 DATETIME NOT NULL,
+  읽음여부 BOOLEAN  NOT NULL DEFAULT FALSE,
+  CONSTRAINT fk_noti_summary FOREIGN KEY (요약코드) REFERENCES DAILY_SUMMARY(요약코드) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

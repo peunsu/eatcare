@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>(function(){var t=localStorage.getItem("nutri_theme")||"light";var e=document.documentElement;e.setAttribute("data-theme",t);e.setAttribute("data-bs-theme",t);})();</script>
+  <title>EatCare · 운영자</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet" />
+  <link href="/css/style.css?v=24" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand bg-white shadow-sm px-3 mb-3">
+    <a class="navbar-brand section-title me-3" href="/dashboard.html" style="text-decoration:none">🥗 EatCare</a>
+    <div class="navbar-nav flex-row gap-1 me-auto">
+      <button class="btn btn-outline-secondary btn-sm" onclick="goBack()">← 뒤로</button>
+      <a class="btn btn-outline-secondary btn-sm" href="/dashboard.html">내 대시보드</a>
+      <a class="btn btn-outline-secondary btn-sm" href="/food.html">식품 정보</a>
+      <a class="btn btn-primary btn-sm" href="/admin.html">운영자 대시보드</a>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="who" class="text-muted small"></span>
+      <button class="btn btn-outline-primary btn-sm" onclick="logout()">로그아웃</button>
+      <button id="themeBtn" class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>🔎 사용자 그룹 필터</span>
+        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="resetFilters()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2v3h-3"/></svg>
+          초기화
+        </button>
+      </div>
+      <div class="card-body" id="filterBox">
+        <div class="row g-3 align-items-start">
+          <!-- 성별 -->
+          <div class="col-12 col-lg-6">
+            <label class="form-label small d-block mb-2">성별</label>
+            <div class="btn-group" role="group">
+              <input type="radio" class="btn-check" name="gender" id="g_all" value="" checked />
+              <label class="btn btn-outline-secondary btn-sm" for="g_all">전체</label>
+              <input type="radio" class="btn-check" name="gender" id="g_m" value="M" />
+              <label class="btn btn-outline-secondary btn-sm" for="g_m">남</label>
+              <input type="radio" class="btn-check" name="gender" id="g_f" value="F" />
+              <label class="btn btn-outline-secondary btn-sm" for="g_f">여</label>
+            </div>
+          </div>
+          <!-- 질환 -->
+          <div class="col-12 col-lg-6">
+            <label class="form-label small d-block mb-2">질환</label>
+            <div id="diseaseGroup" class="btn-group flex-wrap" role="group"></div>
+          </div>
+          <!-- 나이: 듀얼 슬라이더 + 양 끝 입력 -->
+          <div class="col-12 col-lg-6">
+            <label class="form-label small d-block mb-2">나이 범위</label>
+            <div class="d-flex align-items-center gap-2" style="max-width:340px">
+              <input id="age_min_num" type="number" min="0" max="100" value="0" class="form-control form-control-sm text-center px-1" style="width:64px" />
+              <div id="ageSlider" class="flex-grow-1 mx-1"></div>
+              <input id="age_max_num" type="number" min="0" max="100" value="100" class="form-control form-control-sm text-center px-1" style="width:64px" />
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-2" id="agePresets">
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="0" data-hi="100" onclick="setAge(0,100)">전체</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="20" data-hi="29" onclick="setAge(20,29)">20대</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="30" data-hi="39" onclick="setAge(30,39)">30대</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="40" data-hi="49" onclick="setAge(40,49)">40대</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="50" data-hi="59" onclick="setAge(50,59)">50대</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-lo="60" data-hi="100" onclick="setAge(60,100)">60대+</button>
+            </div>
+          </div>
+          <!-- 기간 -->
+          <div class="col-12 col-lg-6">
+            <label class="form-label small d-block mb-2">기간</label>
+            <div class="d-flex align-items-center gap-1" style="max-width:360px">
+              <input id="start" type="date" class="form-control form-control-sm" style="min-width:0;flex:1" />
+              <span class="text-muted">~</span>
+              <input id="end" type="date" class="form-control form-control-sm" style="min-width:0;flex:1" />
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-2" id="rangePresets">
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="1" onclick="setRange(1)">1일</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="7" onclick="setRange(7)">1주일</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="30" onclick="setRange(30)">1개월</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="90" onclick="setRange(90)">3개월</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="180" onclick="setRange(180)">6개월</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-days="365" onclick="setRange(365)">1년</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="result"></div>
+
+    <!-- 회원 상세 데이터 -->
+    <div class="card" id="memberCard" style="display:none">
+      <div class="card-header">👥 회원 상세 데이터</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle member-table" style="table-layout:fixed">
+            <thead><tr>
+              <th class="sortable" style="width:58px" onclick="setSort('code')">번호 <span class="sort-ind" data-k="code"></span></th>
+              <th class="sortable" style="width:52px" onclick="setSort('age')">나이 <span class="sort-ind" data-k="age"></span></th>
+              <th class="sortable" style="width:52px" onclick="setSort('gender')">성별 <span class="sort-ind" data-k="gender"></span></th>
+              <th class="sortable" style="width:30%" onclick="setSort('disease')">질환 <span class="sort-ind" data-k="disease"></span></th>
+              <th class="sortable" style="width:84px" onclick="setSort('risk')">위험도 <span class="sort-ind" data-k="risk"></span></th>
+              <th style="width:120px"></th>
+            </tr></thead>
+            <tbody id="memberRows"></tbody>
+          </table>
+        </div>
+        <div id="pager" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="/js/common.js?v=19"></script>
+  <script>
+    requireAuth();
+    if (getRole() !== "ADMIN") location.href = "/dashboard.html";
+    api("/api/members/me").then((m) => { const w = document.getElementById("who"); if (w) w.textContent = m.name + " 님"; }).catch(() => {});
+    function goBack() {
+      if (history.length > 1) history.back();
+      else location.href = getRole() === "ADMIN" ? "/admin.html" : "/dashboard.html";
+    }
+    Chart.register(ChartDataLabels, HLINE_PLUGIN);
+
+    // 도넛: 좁은 칸도 보이도록 리더 선으로 외부에 % 표시
+    Chart.register({
+      id: "doughnutOutLabels",
+      afterDatasetsDraw(chart) {
+        if (chart.config.type !== "doughnut") return;
+        const ctx = chart.ctx, ds = chart.data.datasets[0], meta = chart.getDatasetMeta(0);
+        const total = ds.data.reduce((a, b) => a + (b || 0), 0);
+        if (!total) return;
+        ctx.save();
+        ctx.font = "700 12px Pretendard, sans-serif";
+        ctx.textBaseline = "middle";
+        meta.data.forEach((arc, i) => {
+          const v = ds.data[i]; if (!v) return;
+          const pct = Math.round((v / total) * 100);
+          const ang = (arc.startAngle + arc.endAngle) / 2, cos = Math.cos(ang), sin = Math.sin(ang);
+          const x0 = arc.x + cos * arc.outerRadius, y0 = arc.y + sin * arc.outerRadius;
+          const x1 = arc.x + cos * (arc.outerRadius + 12), y1 = arc.y + sin * (arc.outerRadius + 12);
+          const right = cos >= 0, x2 = x1 + (right ? 18 : -18);
+          ctx.strokeStyle = ds.backgroundColor[i]; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y1); ctx.stroke();
+          ctx.fillStyle = document.documentElement.getAttribute("data-theme") === "dark" ? "#e8eaed" : "#191f28";
+          ctx.textAlign = right ? "left" : "right";
+          ctx.fillText(pct + "%", x2 + (right ? 4 : -4), y1);
+        });
+        ctx.restore();
+      },
+    });
+
+    // 차트 전역 폰트 = Pretendard
+    Chart.defaults.font.family = "Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+
+    // 히스토그램 상한 기준선(빨간 점선) — plugins.limitLine.value 가 있을 때만
+    Chart.register({
+      id: "limitLine",
+      afterDatasetsDraw(chart, args, opts) {
+        if (!opts || opts.value == null) return;
+        const x = chart.scales.x; if (!x) return;
+        const px = x.getPixelForValue(opts.value);
+        const { ctx, chartArea } = chart;
+        if (px < chartArea.left || px > chartArea.right) return;
+        ctx.save();
+        ctx.beginPath(); ctx.setLineDash([6, 4]); ctx.lineWidth = 1.5; ctx.strokeStyle = "#f04452";
+        ctx.moveTo(px, chartArea.top); ctx.lineTo(px, chartArea.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+        // 상한값에 해당하는 하단 x축 눈금 숫자에 빨간 테두리 강조
+        const ty = Math.min(chartArea.bottom + 14, chart.height - 10);
+        drawChartTag(ctx, String(opts.value), px, ty, "center", chart.width);
+      },
+    });
+    const GENDER = { M: "남", F: "여" };
+    const PAGE_SIZE = 10;
+    const C = { blue: "#3182f6", green: "#15b86a", amber: "#ff9e2c", red: "#f04452", crit: "#9b1c1c", slate: "#4e5968" };
+    const SVG = (p) => `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+    const ICON = {
+      down: SVG('<path d="M4 6l4 4 4-4"/>'),
+      prev: SVG('<path d="M10 4l-4 4 4 4"/>'),
+      next: SVG('<path d="M6 4l4 4-4 4"/>'),
+      first: SVG('<path d="M9 4l-4 4 4 4"/><path d="M13 4l-4 4 4 4"/>'),
+      last: SVG('<path d="M7 4l4 4-4 4"/><path d="M3 4l4 4-4 4"/>'),
+    };
+    let slider, sync = false, runTimer, memberFilter = "", totalPages = 1, lastReport = null, booting = true;
+    let detailData = null, detailSummPage = 1, detailRecPage = 1;
+    const PER_SUMM = 7, PER_REC = 8;
+    let sortKey = "code", sortOrder = "asc";
+    function setSort(k) {
+      if (sortKey === k) sortOrder = sortOrder === "asc" ? "desc" : "asc";
+      else { sortKey = k; sortOrder = "asc"; }
+      loadMembers(1);
+    }
+    const PALETTE = ["#3182f6", "#15b86a", "#ff9e2c", "#f04452", "#8b5cf6", "#06b6d4", "#eab308", "#64748b"];
+    let charts = {}, diseaseNut = {};
+    // 현재 질환 필터로 선택된 기준 영양소명(없으면 null) — 차트 강조용
+    function selectedNutrient() { const v = radioVal("disease"); return v ? diseaseNut[v] : null; }
+    function resetFilters() {
+      document.getElementById("g_all").checked = true;
+      document.getElementById("dz_all").checked = true;
+      setDateInputs(30);
+      sync = true;
+      if (slider) slider.noUiSlider.set([0, 100]);
+      document.getElementById("age_min_num").value = 0;
+      document.getElementById("age_max_num").value = 100;
+      sync = false;
+      syncAgePreset();
+      run();
+    }
+
+    async function init() {
+      setDateInputs(30);
+
+      const cat = await api("/api/members/diseases");
+      cat.forEach((d) => (diseaseNut[d.code] = d.nutrient_name));  // 질환코드 → 기준 영양소명
+      document.getElementById("diseaseGroup").innerHTML =
+        `<input type="radio" class="btn-check" name="disease" id="dz_all" value="" checked />
+         <label class="btn btn-outline-secondary btn-sm" for="dz_all">전체</label>` +
+        cat.map((d) => `
+          <input type="radio" class="btn-check" name="disease" id="dz_${d.code}" value="${d.code}" />
+          <label class="btn btn-outline-secondary btn-sm" for="dz_${d.code}">${d.name}</label>`).join("");
+
+      window.onThemeChange = run;  // 다크모드 토글 시 차트 다시 그림
+
+      // 듀얼 핸들 슬라이더
+      slider = document.getElementById("ageSlider");
+      noUiSlider.create(slider, {
+        start: [0, 100], connect: true, step: 1, margin: 1,
+        range: { min: 0, max: 100 }, format: { to: (v) => Math.round(v), from: (v) => Number(v) },
+      });
+      const minN = document.getElementById("age_min_num"), maxN = document.getElementById("age_max_num");
+      slider.noUiSlider.on("update", (vals) => {
+        if (sync) return; sync = true;
+        minN.value = vals[0]; maxN.value = vals[1]; sync = false;
+        syncAgePreset();
+        if (!booting) scheduleRun();   // 생성 시 발생하는 초기 update는 무시(중복 로딩 방지)
+      });
+      function fromNumbers() {
+        if (sync) return; sync = true;
+        let lo = clamp(minN.value), hi = clamp(maxN.value);
+        if (lo > hi) [lo, hi] = [hi, lo];
+        slider.noUiSlider.set([lo, hi]); sync = false;
+        syncAgePreset();
+        scheduleRun();
+      }
+      minN.addEventListener("change", fromNumbers);
+      maxN.addEventListener("change", fromNumbers);
+
+      // 라디오/날짜 변경 → 자동 반영
+      document.getElementById("filterBox").addEventListener("change", scheduleRun);
+      // 달력 직접 수정 시 빠른 선택 버튼 강조 동기화
+      document.getElementById("start").addEventListener("change", syncPresetHighlight);
+      document.getElementById("end").addEventListener("change", syncPresetHighlight);
+      syncAgePreset();  // 초기 강조(전체)
+
+      run();  // 최초 자동 로드 (1회)
+      booting = false;
+    }
+    const clamp = (v) => Math.max(0, Math.min(100, parseInt(v) || 0));
+
+    function scheduleRun() { clearTimeout(runTimer); runTimer = setTimeout(run, 300); }
+
+    // 나이대 빠른 선택 — 슬라이더/입력과 연동
+    function setAge(lo, hi) {
+      if (!slider) return;
+      sync = true;
+      slider.noUiSlider.set([lo, hi]);
+      document.getElementById("age_min_num").value = lo;
+      document.getElementById("age_max_num").value = hi;
+      sync = false;
+      syncAgePreset();
+      scheduleRun();
+    }
+    function syncAgePreset() {
+      const lo = document.getElementById("age_min_num").value, hi = document.getElementById("age_max_num").value;
+      document.querySelectorAll("#agePresets [data-lo]").forEach((b) =>
+        b.classList.toggle("active", b.dataset.lo === String(lo) && b.dataset.hi === String(hi)));
+    }
+
+    // 기간 빠른 선택 — 달력 입력과 연동
+    function setDateInputs(days) {
+      const today = new Date();
+      const start = new Date(Date.now() - (days - 1) * 864e5);
+      document.getElementById("end").value = today.toISOString().slice(0, 10);
+      document.getElementById("start").value = start.toISOString().slice(0, 10);
+      syncPresetHighlight();
+    }
+    function setRange(days) { setDateInputs(days); scheduleRun(); }
+    function syncPresetHighlight() {
+      const s = document.getElementById("start").value, e = document.getElementById("end").value;
+      const today = new Date().toISOString().slice(0, 10);
+      let match = null;
+      if (s && e === today) match = Math.round((new Date(e) - new Date(s)) / 864e5) + 1;
+      document.querySelectorAll("#rangePresets [data-days]").forEach((b) =>
+        b.classList.toggle("active", Number(b.dataset.days) === match));
+    }
+
+    function radioVal(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : "";
+    }
+    function adminParams() {
+      const p = new URLSearchParams();
+      let lo = clamp(document.getElementById("age_min_num").value);
+      let hi = clamp(document.getElementById("age_max_num").value);
+      if (lo > hi) [lo, hi] = [hi, lo];
+      p.set("age_min", lo); p.set("age_max", hi);
+      const g = radioVal("gender"); if (g) p.set("gender", g);
+      const dz = radioVal("disease"); if (dz) p.set("disease_code", dz);
+      return p;
+    }
+
+    function makeChart(id, config) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id), config);
+    }
+
+    async function run() {
+      const p = adminParams();
+      const rp = new URLSearchParams(p);
+      if (document.getElementById("start").value) rp.set("start", document.getElementById("start").value);
+      if (document.getElementById("end").value) rp.set("end", document.getElementById("end").value);
+      const r = await api("/api/admin/report?" + rp.toString());
+      lastReport = r;
+
+      const dist = r.risk_distribution || { 정상: 0, 주의: 0, 위험: 0, 경고: 0 };
+      const totalDays = Object.values(dist).reduce((a, b) => a + b, 0);
+      const danger = (dist["위험"] || 0) + (dist["경고"] || 0);
+      const normalPct = totalDays ? Math.round((dist["정상"] / totalDays) * 100) : 0;
+
+      const distRadios = (r.distributions || []).map((x, i) => `
+        <input type="radio" class="btn-check" name="distNut" id="dn_${x.nutrient_code}" value="${x.nutrient_code}" ${i === 0 ? "checked" : ""} onchange="renderDistribution()">
+        <label class="btn btn-outline-secondary btn-sm" for="dn_${x.nutrient_code}">${x.nutrient_name}</label>`).join("");
+      document.getElementById("result").innerHTML = `
+        <div class="row g-3 mb-3">
+          ${kpi("📅 분석 기간", r.filters.start + " ~ " + r.filters.end, "var(--text-2)", true, "아래 모든 통계를 집계한 날짜 범위입니다.", "col-12 col-lg-3")}
+          ${kpi("👥 대상 회원", r.member_count + "명", C.blue, false, "현재 필터(나이·성별·질환)에 해당하는 회원 수입니다. 기간과 무관한 현재 인원입니다.", "col-6 col-lg-3")}
+          <div class="col-12 col-lg-6"><div class="card h-100"><div class="card-body py-3 d-flex flex-column">
+            <div class="text-muted small mb-2 text-center">⚠️ 위험도별 건수 <span class="kpi-help" data-tip="분석 기간 동안 회원들의 하루 단위 건강 평가 결과를 위험도 등급별로 집계한 건수입니다.">?</span></div>
+            <div class="flex-grow-1 d-flex align-items-center">
+              <div class="d-flex justify-content-around text-center w-100">
+                <div><div class="fs-4 fw-bold" style="color:${C.green}">${dist["정상"] || 0}</div><div class="text-muted small">정상</div></div>
+                <div><div class="fs-4 fw-bold" style="color:${C.amber}">${dist["주의"] || 0}</div><div class="text-muted small">주의</div></div>
+                <div><div class="fs-4 fw-bold" style="color:${C.red}">${dist["위험"] || 0}</div><div class="text-muted small">위험</div></div>
+                <div><div class="fs-4 fw-bold" style="color:${C.crit}">${dist["경고"] || 0}</div><div class="text-muted small">경고</div></div>
+              </div>
+            </div>
+          </div></div></div>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-4"><div class="card"><div class="card-header">⚠️ 위험도 분포 <span class="kpi-help" data-tip="선택 기간 동안 그룹 회원의 하루 단위 위험도 평가(정상·주의·위험·경고) 건수 분포입니다.">?</span></div>
+            <div class="card-body"><div style="height:250px"><canvas id="riskChart"></canvas></div></div></div></div>
+          <div class="col-lg-4"><div class="card"><div class="card-header">📊 영양소 평균 섭취량 <span class="kpi-help" data-tip="그룹 회원의 1일 평균 섭취량을 영양소별 상한 대비 %로 나타냅니다. 섭취 기록이 없는 회원은 0으로 포함합니다.">?</span></div>
+            <div class="card-body"><div style="height:250px"><canvas id="nutrientChart"></canvas></div></div></div></div>
+          <div class="col-lg-4"><div class="card"><div class="card-header">🚩 영양소 기준 초과 비율 <span class="kpi-help" data-tip="각 영양소의 일일 상한을 기간 평균 기준으로 초과한 회원의 비율입니다.">?</span></div>
+            <div class="card-body"><div style="height:250px"><canvas id="overChart"></canvas></div></div></div></div>
+        </div>
+        <div class="row g-3 mt-0">
+          <div class="col-lg-6"><div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-1">
+            <span>📉 영양소 섭취 분포 <span class="kpi-help" data-tip="선택한 영양소에 대한 회원별 평균 섭취량의 분포입니다(막대=인원, 곡선=밀도). 빨간 점선은 상한 위치입니다.">?</span></span>
+            <div class="btn-group" role="group">${distRadios}</div>
+          </div><div class="card-body"><div style="height:260px"><canvas id="distChart"></canvas></div></div></div></div>
+          <div class="col-lg-6"><div class="card"><div class="card-header">🥗 식품 분류별 섭취 횟수 <span class="kpi-help" data-tip="그룹 회원이 섭취한 식품을 대분류별 기록 수 상위로 집계한 분포입니다.">?</span></div>
+            <div class="card-body"><div style="height:260px"><canvas id="foodCatChart"></canvas></div></div></div></div>
+        </div>`;
+
+      renderCharts(r, dist);
+      memberFilter = p.toString();
+      await loadMembers(1);
+    }
+
+    function renderCharts(r, dist) {
+      const dark = currentTheme() === "dark";
+      const txt = dark ? "#e8eaed" : "#191f28";
+      const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+      Chart.defaults.color = txt;
+      const base = { responsive: true, maintainAspectRatio: false };
+
+      // 위험도 도넛: 기본 % 표시, hover 시 건수
+      makeChart("riskChart", {
+        type: "doughnut",
+        data: { labels: ["정상", "주의", "위험", "경고"],
+          datasets: [{ data: [dist["정상"], dist["주의"], dist["위험"], dist["경고"]],
+            backgroundColor: [C.green, C.amber, C.red, C.crit] }] },
+        options: { ...base, layout: { padding: 30 },
+          plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, padding: 14 } },
+            datalabels: { display: false },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}건` } } } },
+      });
+
+      // 선택 질환의 기준 영양소(강조용). 비선택 시 모든 막대 기본색.
+      const selNut = selectedNutrient();
+      const emph = (name, base) => (selNut ? (name === selNut ? base : (dark ? "rgba(148,163,184,.35)" : "rgba(148,163,184,.5)")) : base);
+
+      // 평균 섭취량: 표준 상한 대비 %, 막대 라벨에 평균 섭취량 + %
+      const limitByNut = {};
+      r.nutrient_over.forEach((o) => (limitByNut[o.nutrient_name] = o.limit));
+      const navg = r.averages.filter((a) => limitByNut[a.nutrient_name]);
+      makeChart("nutrientChart", {
+        type: "bar",
+        data: { labels: navg.map((a) => a.nutrient_name),
+          datasets: [{
+            data: navg.map((a) => Math.round((a.avg_intake / limitByNut[a.nutrient_name]) * 100)),
+            amt: navg.map((a) => `${a.avg_intake}${a.unit}`),
+            backgroundColor: navg.map((a) => emph(a.nutrient_name, C.blue)), borderRadius: 6,
+            datalabels: { anchor: "end", align: "top", offset: 2, textAlign: "center", color: txt, font: { weight: "700" },
+              formatter: (v, ctx) => [ctx.dataset.amt[ctx.dataIndex], v + "%"] } }] },
+        options: { ...base, layout: { padding: { top: 28 } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grace: "10%", title: { display: true, text: "상한 대비 (%)" }, grid: { color: grid } },
+          },
+          plugins: { legend: { display: false }, hLine: { value: 100, label: "상한 100%" },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.amt[ctx.dataIndex]} · ${ctx.parsed.y}%` } } } },
+      });
+
+      // 영양소 기준 초과 비율: 그룹 회원 중 표준 상한 초과 비율
+      makeChart("overChart", {
+        type: "bar",
+        data: { labels: r.nutrient_over.map((o) => o.nutrient_name),
+          datasets: [{ data: r.nutrient_over.map((o) => +(o.over_ratio * 100).toFixed(1)),
+            backgroundColor: r.nutrient_over.map((o) => emph(o.nutrient_name, C.amber)), borderRadius: 6 }] },
+        options: { ...base, layout: { padding: { top: 28 } },
+          scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grace: "10%", title: { display: true, text: "기준 초과 비율 (%)" }, grid: { color: grid } } },
+          plugins: { legend: { display: false },
+            datalabels: { anchor: "end", align: "top", color: txt, font: { weight: "700" }, formatter: (v) => v + "%" },
+            tooltip: { callbacks: { afterLabel: (ctx) => {
+              const o = r.nutrient_over[ctx.dataIndex]; return `초과 ${o.over_members} / ${o.total_members}명 · 상한 ${o.limit}${o.unit}`; } } } } },
+      });
+
+      renderDistribution();
+      renderFoodCategory(r);
+    }
+
+    // 영양소 섭취 분포 히스토그램 (선택 영양소, 캐시 데이터로 재렌더)
+    function renderDistribution() {
+      if (!lastReport || !lastReport.distributions || !lastReport.distributions.length) return;
+      const dark = currentTheme() === "dark";
+      const txt = dark ? "#e8eaed" : "#191f28";
+      const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+      const checked = document.querySelector('input[name="distNut"]:checked');
+      const nd = lastReport.distributions.find((x) => checked && String(x.nutrient_code) === checked.value) || lastReport.distributions[0];
+      const vals = nd.values || [];
+      const BINS = 20;
+      const maxV = Math.max(nd.limit ? nd.limit * 1.2 : 0, ...vals, 1);
+      const w = maxV / BINS;
+      const dec = w < 1 ? 2 : 0;
+      const edge = (i) => +(i * w).toFixed(dec);
+      const counts = new Array(BINS).fill(0);
+      vals.forEach((v) => { let i = Math.floor((v < 0 ? 0 : v) / w); if (i >= BINS) i = BINS - 1; counts[i]++; });
+      const points = counts.map((c, i) => ({ x: (i + 0.5) * w, y: c }));
+      const barColor = dark ? "rgba(148,163,184,0.28)" : "rgba(148,163,184,0.40)";
+
+      // KDE(가우시안) — 막대(개수) 스케일에 맞춰 오버레이
+      const n = vals.length;
+      const mean = vals.reduce((a, b) => a + b, 0) / Math.max(1, n);
+      const std = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, n - 1));
+      let h = 1.06 * std * Math.pow(Math.max(1, n), -0.2);
+      if (!(h > 0)) h = w;
+      const GP = 80;
+      const kdePts = Array.from({ length: GP + 1 }, (_, k) => {
+        const x = (maxV * k) / GP;
+        const d = vals.reduce((s, xi) => s + Math.exp(-0.5 * ((x - xi) / h) ** 2), 0) / (n * h * Math.sqrt(2 * Math.PI));
+        return { x, y: d * n * w };  // 밀도 → 막대(개수) 스케일
+      });
+
+      makeChart("distChart", {
+        type: "bar",
+        data: { datasets: [
+          { type: "bar", data: points, backgroundColor: barColor, borderRadius: 2, barPercentage: 1, categoryPercentage: 1, order: 2,
+            datalabels: { display: false } },
+          { type: "line", data: kdePts, borderColor: C.blue, backgroundColor: "rgba(49,130,246,0.12)",
+            fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2.5, order: 1, datalabels: { display: false } },
+        ] },
+        options: { responsive: true, maintainAspectRatio: false,
+          scales: {
+            x: { type: "linear", min: 0, max: maxV, offset: false,
+              ticks: { stepSize: maxV / 10, maxRotation: 0, callback: (v) => +(+v).toFixed(dec) },
+              grid: { display: false }, title: { display: true, text: `섭취량 (${nd.unit})` } },
+            y: { beginAtZero: true, grace: "12%", title: { display: true, text: "회원 수" }, grid: { color: grid }, ticks: { precision: 0 } },
+          },
+          plugins: { legend: { display: false },
+            limitLine: { value: nd.limit },
+            tooltip: { filter: (item) => item.datasetIndex === 0, callbacks: {
+              title: (t) => (t.length ? `${edge(t[0].dataIndex)}~${edge(t[0].dataIndex + 1)} ${nd.unit}` : ""),
+              label: (ctx) => `회원 ${ctx.dataset.data[ctx.dataIndex].y}명` } } } },
+      });
+    }
+
+    // 식품 분류별 섭취 (가로 막대)
+    function renderFoodCategory(r) {
+      const dark = currentTheme() === "dark";
+      const txt = dark ? "#e8eaed" : "#191f28";
+      const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+      const fc = r.food_categories || [];
+      makeChart("foodCatChart", {
+        type: "bar",
+        data: { labels: fc.map((x) => x.category),
+          datasets: [{ data: fc.map((x) => x.count), backgroundColor: fc.map((_, i) => PALETTE[i % PALETTE.length]), borderRadius: 5 }] },
+        options: { indexAxis: "y", responsive: true, maintainAspectRatio: false,
+          scales: { x: { beginAtZero: true, grace: "10%", title: { display: true, text: "섭취 기록 수" }, grid: { color: grid }, ticks: { precision: 0 } },
+            y: { grid: { display: false } } },
+          plugins: { legend: { display: false },
+            datalabels: { anchor: "end", align: "end", color: txt, font: { weight: "700" } } } },
+      });
+    }
+
+    function kpi(label, value, color, small, hint, colCls = "col-6 col-lg-3") {
+      const q = hint ? ` <span class="kpi-help" data-tip="${hint}">?</span>` : "";
+      return `<div class="${colCls}"><div class="card h-100"><div class="card-body py-3 text-center d-flex flex-column">
+        <div class="text-muted small mb-1">${label}${q}</div>
+        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+          <span class="${small ? "fw-bold" : "fs-4 fw-bold"}" style="color:${color}">${value}</span>
+        </div>
+      </div></div></div>`;
+    }
+
+    async function loadMembers(page) {
+      const data = await api(`/api/admin/members?${memberFilter}&page=${page}&page_size=${PAGE_SIZE}&sort=${sortKey}&order=${sortOrder}`);
+      document.querySelectorAll(".sort-ind").forEach((s) => { s.textContent = s.dataset.k === sortKey ? (sortOrder === "asc" ? " ▲" : " ▼") : ""; });
+      document.getElementById("memberRows").innerHTML = data.members.map((m) => {
+        const cls = RISK_CLASS[m.latest_risk] || "secondary";
+        const risk = m.latest_risk ? `<span class="badge bg-${cls}">${m.latest_risk}</span>` : "<span class='text-muted'>-</span>";
+        const dz = m.diseases.length
+          ? m.diseases.map((n) => diseaseBadge(n)).join("")
+          : "<span class='text-muted'>없음</span>";
+        return `<tr id="mrow-${m.member_code}" style="cursor:pointer" onclick="if(!event.target.closest('a,button'))toggleDetail(${m.member_code})">
+          <td>${m.member_code}</td><td>${m.age ?? "-"}</td><td>${GENDER[m.gender] || "-"}</td>
+          <td>${dz}</td>
+          <td>${risk}</td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary" href="/member.html?code=${m.member_code}">마이페이지</a>
+            <button class="icon-btn detail-btn" title="상세 보기" onclick="toggleDetail(${m.member_code})">${ICON.down}</button>
+          </td>
+        </tr>`;
+      }).join("") || "<tr><td colspan='6' class='text-muted'>대상 회원 없음</td></tr>";
+      // 페이지마다 행 수를 동일하게 유지(필러 행) → 화살표 위치 고정
+      let filler = "";
+      if (data.members.length) for (let i = data.members.length; i < PAGE_SIZE; i++) filler += "<tr class='filler'><td colspan='6'>&nbsp;</td></tr>";
+      document.getElementById("memberRows").innerHTML = document.getElementById("memberRows").innerHTML + filler;
+      renderPager(data);
+      document.getElementById("memberCard").style.display = "";
+    }
+
+    function renderPager(data) {
+      const { page, total_pages, member_count } = data;
+      totalPages = total_pages;
+      const W = 10;  // 번호 버튼을 1-10, 11-20 … 고정 블록으로 표시
+      const s = Math.floor((page - 1) / W) * W + 1;
+      const e = Math.min(total_pages, s + W - 1);
+      const b = (label, target, dis, title) =>
+        `<button class="icon-btn" ${dis ? "disabled" : ""} title="${title || ""}" onclick="loadMembers(${target})">${label}</button>`;
+      let nums = "";
+      for (let p = s; p <= e; p++)
+        nums += `<button class="btn btn-sm ${p === page ? "btn-primary" : "btn-outline-secondary"}" onclick="loadMembers(${p})">${p}</button>`;
+      // 2개짜리 화살표 = 이전/다음 블록(10페이지), 1개짜리 = 한 페이지
+      document.getElementById("pager").innerHTML = `
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-1">
+          ${b(ICON.first, s - W, s <= 1, "이전 " + W + "페이지")}${b(ICON.prev, page - 1, page <= 1, "이전")}${nums}${b(ICON.next, page + 1, page >= total_pages, "다음")}${b(ICON.last, e + 1, e >= total_pages, "다음 " + W + "페이지")}
+        </div>
+        <div class="d-flex align-items-center justify-content-center gap-2 mt-2 text-muted small">
+          <span>총 ${member_count}명 · ${total_pages}페이지</span>
+          <input id="pageJump" type="number" min="1" max="${total_pages}" class="form-control form-control-sm text-center px-1" style="width:52px" placeholder="쪽" onkeydown="if(event.key==='Enter')jumpPage()" />
+          <button class="btn btn-sm btn-outline-secondary" onclick="jumpPage()">이동</button>
+        </div>`;
+    }
+    function jumpPage() {
+      const v = parseInt(document.getElementById("pageJump").value);
+      if (!v) return;
+      loadMembers(Math.min(Math.max(1, v), totalPages));
+    }
+
+    function buildDetailHtml(d) {
+      let h = `<div class="mb-3">
+        <span class="badge bg-secondary me-1">나이 ${d.age ?? "-"}</span>
+        <span class="badge bg-secondary me-1">성별 ${GENDER[d.gender] || "-"}</span>
+        <span class="badge bg-secondary me-1">가입 ${d.joined_at}</span>
+        <span class="badge bg-secondary me-1">상태 ${d.status}</span>
+        <span class="badge bg-secondary">역할 ${d.role}</span></div>`;
+      h += `<h6 class="section-title">기저질환</h6>`;
+      h += d.diseases.length
+        ? d.diseases.map((x) => `<div class="d-flex align-items-center py-1 border-bottom"><span class="badge-cell">${diseaseBadge(x.name)}</span><small class="text-muted">${x.registered_at} 등록</small></div>`).join("")
+        : "<p class='text-muted'>없음</p>";
+      h += `<h6 class="section-title mt-3">일일 요약 (최근 ${d.summaries.length}일)</h6><div id="detailSumm"></div>`;
+      h += `<h6 class="section-title mt-3">식단 기록 (최근 ${d.records.length}건)</h6><div id="detailRec"></div>`;
+      return h;
+    }
+    function detailPager(pages, page, kind) {
+      if (pages <= 1) return "";
+      return `<div class="d-flex justify-content-center align-items-center gap-2 mt-1">
+        <button class="icon-btn" ${page <= 1 ? "disabled" : ""} onclick="detailGo('${kind}',${page - 1})">‹</button>
+        <span class="text-muted small">${page} / ${pages}</span>
+        <button class="icon-btn" ${page >= pages ? "disabled" : ""} onclick="detailGo('${kind}',${page + 1})">›</button></div>`;
+    }
+    function detailGo(kind, p) {
+      if (kind === "summ") { detailSummPage = p; renderDetailSumm(); }
+      else { detailRecPage = p; renderDetailRec(); }
+    }
+    function renderDetailSumm() {
+      const arr = detailData.summaries, pages = Math.max(1, Math.ceil(arr.length / PER_SUMM));
+      detailSummPage = Math.min(detailSummPage, pages);
+      const slice = arr.slice((detailSummPage - 1) * PER_SUMM, detailSummPage * PER_SUMM);
+      const body = slice.length ? slice.map((s) => {
+        const cls = RISK_CLASS[s.risk] || "secondary";
+        const nut = s.nutrients.map((n) => `${n.name} ${n.total}${n.unit}`).join(", ") || "기록 없음";
+        return `<div class="d-flex align-items-center py-1 border-bottom"><span class="badge-cell"><span class="badge bg-${cls}">${s.risk}</span></span><span class="me-2">${s.date}</span><small class="text-muted">${nut}</small></div>`;
+      }).join("") : "<p class='text-muted mb-0'>요약 없음</p>";
+      document.getElementById("detailSumm").innerHTML = body + detailPager(pages, detailSummPage, "summ");
+    }
+    function renderDetailRec() {
+      const arr = detailData.records, pages = Math.max(1, Math.ceil(arr.length / PER_REC));
+      detailRecPage = Math.min(detailRecPage, pages);
+      const slice = arr.slice((detailRecPage - 1) * PER_REC, detailRecPage * PER_REC);
+      const body = slice.length
+        ? `<table class="table table-sm mb-1" style="table-layout:fixed"><thead><tr><th style="width:38%">식품</th><th style="width:22%">분류</th><th style="width:16%">섭취량</th><th style="width:24%">일시</th></tr></thead><tbody>`
+          + slice.map((r) => { const tip = (r.nutrients || []).map((n) => `${n.name} ${n.amount}${n.unit}`).join(", ");
+            return `<tr><td class="text-truncate"><a href="/food.html?code=${encodeURIComponent(r.food_code)}&amt=${r.amount}" ${tip ? `data-tip="${tip}"` : ""} style="color:inherit;text-decoration:underline;text-underline-offset:2px">${r.food_name}</a></td><td class="text-truncate">${r.category || "-"}</td><td>${r.amount}g</td><td class="text-nowrap">${r.recorded_at}</td></tr>`; }).join("") + `</tbody></table>`
+        : "<p class='text-muted mb-0'>기록 없음</p>";
+      document.getElementById("detailRec").innerHTML = body + detailPager(pages, detailRecPage, "rec");
+    }
+    // 행 아래로 확장(인라인). 다시 누르면 닫힘, 한 번에 하나만 열림.
+    async function toggleDetail(code) {
+      const open = document.getElementById("drow-" + code);
+      document.querySelectorAll("#memberRows .detail-row").forEach((el) => el.remove());
+      document.querySelectorAll("#memberRows .detail-btn").forEach((b) => b.classList.remove("open"));
+      if (open) return;
+      const d = await api("/api/admin/members/" + code);
+      detailData = d; detailSummPage = 1; detailRecPage = 1;
+      const tr = document.createElement("tr");
+      tr.className = "detail-row";
+      tr.id = "drow-" + code;
+      tr.innerHTML = `<td colspan="6" class="bg-body-tertiary"><div class="p-2"><div class="fw-bold mb-2">회원 #${d.member_code} 상세</div>${buildDetailHtml(d)}</div></td>`;
+      document.getElementById("mrow-" + code).after(tr);
+      renderDetailSumm();
+      renderDetailRec();
+      const btn = document.querySelector("#mrow-" + code + " .detail-btn");
+      if (btn) btn.classList.add("open");
+    }
+
+    init();
+  </script>
+</body>
+</html>

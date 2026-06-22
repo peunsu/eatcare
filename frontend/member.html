@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>(function(){var t=localStorage.getItem("nutri_theme")||"light";var e=document.documentElement;e.setAttribute("data-theme",t);e.setAttribute("data-bs-theme",t);})();</script>
+  <title>EatCare · 회원 마이페이지</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css?v=24" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand bg-white shadow-sm px-3 mb-3">
+    <a class="navbar-brand section-title me-3" href="/dashboard.html" style="text-decoration:none">🥗 EatCare</a>
+    <div class="navbar-nav flex-row gap-1 me-auto">
+      <button class="btn btn-outline-secondary btn-sm" onclick="goBack()">← 뒤로</button>
+      <a class="btn btn-outline-secondary btn-sm" href="/dashboard.html">내 대시보드</a>
+      <a class="btn btn-outline-secondary btn-sm" href="/food.html">식품 정보</a>
+      <a class="btn btn-primary btn-sm" href="/admin.html">운영자 대시보드</a>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="who" class="text-muted small"></span>
+      <button class="btn btn-outline-primary btn-sm" onclick="logout()">로그아웃</button>
+      <button id="themeBtn" class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h5 class="section-title mb-2" id="title">회원 마이페이지</h5>
+    <div class="alert alert-secondary py-2 small mb-3">운영자 열람용 · 읽기 전용이며 이름·이메일 등 개인정보는 표시되지 않습니다.</div>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">👤 프로필</div>
+          <div class="card-body" id="profileBox"></div>
+        </div>
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>📝 식단 기록</span>
+            <div class="d-flex align-items-center gap-1">
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(-1)" title="이전 날">◀</button>
+              <input id="m_date" type="date" class="form-control form-control-sm" style="width:auto" onchange="renderForDate()" />
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(1)" title="다음 날">▶</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="goToday()">오늘</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <h6 class="text-muted small" id="recTitle">기록</h6>
+            <div id="records"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">🔔 알림함</div>
+          <div class="card-body"><ul id="mNotis" class="list-group"></ul><div id="mNotisPager" class="d-flex justify-content-center align-items-center gap-2 mt-2"></div></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>📊 일일 영양 리포트 <span class="kpi-help" data-tip="선택한 날짜에 이 회원이 섭취한 영양소를 일일 상한 대비 %로 보여줍니다. 기저질환 관련 영양소는 강조되고, 상한 초과 시 빨간색으로 표시됩니다.">?</span></span>
+            <div class="d-flex align-items-center gap-1">
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(-1)" title="이전 날">◀</button>
+              <input id="m_rdate" type="date" class="form-control form-control-sm" style="width:auto" onchange="document.getElementById('m_date').value=this.value; renderForDate()" />
+              <button class="btn btn-outline-secondary btn-sm" onclick="shiftDate(1)" title="다음 날">▶</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="goToday()">오늘</button>
+            </div>
+          </div>
+          <div class="card-body" id="reportBox"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">📈 최근 14일 영양소 추이 <span class="kpi-help" data-tip="이 회원의 최근 14일간 일자별 영양소 섭취량을 일일 상한 대비 %로 나타냅니다. 100% 점선을 넘으면 상한 초과입니다.">?</span></div>
+          <div class="card-body"><div style="height:220px"><canvas id="mTrend"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">🥗 최근 14일 식품 분류별 섭취 횟수 <span class="kpi-help" data-tip="이 회원이 최근 14일간 섭취한 식품을 대분류별 횟수로 집계한 분포입니다.">?</span></div>
+          <div class="card-body"><div style="height:240px"><canvas id="catChart"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="/js/common.js?v=19"></script>
+  <script>
+    requireAuth();
+    if (getRole() !== "ADMIN") location.href = "/dashboard.html";
+    api("/api/members/me").then((m) => { const w = document.getElementById("who"); if (w) w.textContent = m.name + " 님"; }).catch(() => {});
+    function goBack() {
+      if (history.length > 1) history.back();
+      else location.href = getRole() === "ADMIN" ? "/admin.html" : "/dashboard.html";
+    }
+    Chart.register(ChartDataLabels, HLINE_PLUGIN);
+    Chart.defaults.font.family = "Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+    const GENDER = { M: "남", F: "여" };
+    const PALETTE = ["#3182f6", "#15b86a", "#ff9e2c", "#f04452", "#8b5cf6", "#06b6d4", "#eab308", "#64748b"];
+    const code = new URLSearchParams(location.search).get("code");
+    let detail = null, thresholds = [], reportChart = null, allLimits = {}, mTrendChart = null, catChartObj = null;
+    let mNotis = [], mNotiPage = 1;
+    const M_NOTI_PER = 5;
+
+    async function init() {
+      if (!code) { location.href = "/admin.html"; return; }
+      detail = await api("/api/admin/members/" + code);
+      document.getElementById("title").textContent = `회원 #${detail.member_code} 마이페이지`;
+
+      // 프로필 (개인정보 제외)
+      const dz = detail.diseases.length
+        ? detail.diseases.map((x) => diseaseBadge(x.name)).join("")
+        : "<span class='text-muted'>없음</span>";
+      document.getElementById("profileBox").innerHTML = `
+        <div class="mb-1"><span class="text-muted small me-2">나이</span>${detail.age ?? "-"}</div>
+        <div class="mb-1"><span class="text-muted small me-2">성별</span>${GENDER[detail.gender] || "미설정"}</div>
+        <div class="mb-1"><span class="text-muted small me-2">가입일</span>${detail.joined_at}</div>
+        <div class="mb-1"><span class="text-muted small me-2">계정상태</span>${detail.status}</div>
+        <hr class="my-3" /><h6 class="section-title mb-2">기저질환</h6>${dz}`;
+
+      // 질환 상한(공통 카탈로그) → 회원 기준 영양소 상한
+      const cat = await api("/api/members/diseases");
+      allLimits = {}; cat.forEach((c) => (allLimits[c.nutrient_name] = { limit: c.daily_limit, unit: c.unit }));
+      const myNames = new Set(detail.diseases.map((d) => d.name));
+      thresholds = cat.filter((c) => myNames.has(c.name)).map((c) => ({ name: c.nutrient_name, limit: c.daily_limit, unit: c.unit }));
+
+      renderCat(detail.food_categories || []);
+      renderTrend(detail.summaries || [], allLimits);
+
+      // 알림 — 최신순 정렬 + 페이지네이션
+      mNotis = [...(detail.notifications || [])].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      mNotiPage = 1;
+      renderMNotis();
+
+      // 날짜 기본값: 가장 최근 기록/요약 날짜
+      const dates = [...detail.records.map((r) => r.recorded_at.slice(0, 10)), ...detail.summaries.map((s) => s.date)];
+      document.getElementById("m_date").value = dates.sort().slice(-1)[0] || new Date().toISOString().slice(0, 10);
+      renderForDate();
+    }
+
+    function shiftDate(delta) {
+      const el = document.getElementById("m_date");
+      const d = new Date(el.value || new Date());
+      d.setDate(d.getDate() + delta);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (d > today) return;  // 미래 날짜 방지
+      el.value = d.toISOString().slice(0, 10);
+      renderForDate();
+    }
+    function goToday() {
+      document.getElementById("m_date").value = new Date().toISOString().slice(0, 10);
+      renderForDate();
+    }
+
+    function renderForDate() {
+      const d = document.getElementById("m_date").value;
+      document.getElementById("recTitle").textContent = "기록";
+      document.getElementById("m_rdate").value = d;
+
+      // 식단 기록 (최근 50건 중 해당 날짜)
+      const recs = detail.records.filter((r) => r.recorded_at.slice(0, 10) === d);
+      const rows = recs.map((r) => {
+        const tip = (r.nutrients || []).map((n) => `${n.name} ${n.amount}${n.unit}`).join(", ");
+        return `<tr>
+          <td><a href="/food.html?code=${encodeURIComponent(r.food_code)}&amt=${r.amount}" ${tip ? `data-tip="${tip}"` : ""} style="color:inherit;text-decoration:underline;text-underline-offset:2px">${r.food_name}</a>${r.category ? ` <span class="badge" style="background:var(--toss-blue-soft);color:var(--toss-blue)">${r.category}</span>` : ""}</td>
+          <td class="text-end text-nowrap">${r.amount}g</td>
+          <td class="text-end text-nowrap text-muted">${(r.recorded_at || "").slice(11, 16)}</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("records").innerHTML = recs.length
+        ? `<table class="table table-sm align-middle mb-0"><thead><tr><th>식품</th><th class="text-end">섭취량</th><th class="text-end">시간</th></tr></thead><tbody>${rows}</tbody></table>`
+        : "<p class='text-muted small mb-0'>기록 없음</p>";
+
+      // 일일 영양 리포트 (해당 날짜 요약) — 막대그래프
+      const s = detail.summaries.find((x) => x.date === d);
+      const box = document.getElementById("reportBox");
+      if (reportChart) { reportChart.destroy(); reportChart = null; }
+      if (!s) { box.innerHTML = "<p class='text-muted mb-0'>이 날짜의 요약이 없습니다.</p>"; return; }
+      const cls = RISK_CLASS[s.risk] || "secondary";
+      const monNames = new Set(thresholds.map((t) => t.name));
+      // 표준 상한이 있는 모든 영양소를 표시(섭취 0 포함), 질환관련(monitored) 강조
+      const ns = Object.keys(allLimits).map((name) => {
+        const found = s.nutrients.find((x) => x.name === name);
+        const lim = allLimits[name].limit, unit = allLimits[name].unit;
+        const total = found ? found.total : 0;
+        return { name, total, unit, limit: lim, monitored: monNames.has(name), exceeded: total > lim };
+      });
+      let html = `<div class="mb-2">위험도: <span class="badge risk-badge bg-${cls}">${s.risk}</span></div>`;
+      html += ns.length ? `<div style="height:210px"><canvas id="reportChart"></canvas></div>`
+                        : "<p class='text-muted mb-0'>섭취 기록이 없습니다.</p>";
+      box.innerHTML = html;
+      if (ns.length) {
+        const dark = currentTheme() === "dark";
+        const txt = dark ? "#e8eaed" : "#191f28";
+        const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+        const gray = dark ? "rgba(148,163,184,.35)" : "rgba(148,163,184,.5)";
+        reportChart = new Chart(document.getElementById("reportChart"), {
+          type: "bar",
+          data: { labels: ns.map((n) => n.name),
+            datasets: [{ data: ns.map((n) => Math.round((n.total / n.limit) * 100)),
+              _amt: ns.map((n) => `${n.total}${n.unit}`),
+              backgroundColor: ns.map((n) => (n.monitored ? (n.exceeded ? "#f04452" : "#3182f6") : gray)), borderRadius: 5 }] },
+          options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
+            scales: { x: { grid: { display: false }, ticks: { color: txt } },
+              y: { beginAtZero: true, grace: "10%", title: { display: true, text: "상한 대비 (%)", color: txt }, grid: { color: grid }, ticks: { color: txt } } },
+            plugins: { legend: { display: false }, hLine: { value: 100, label: "상한 100%" },
+              datalabels: { anchor: "end", align: "top", textAlign: "center", color: txt, font: { weight: "700" }, formatter: (v, ctx) => [ctx.dataset._amt[ctx.dataIndex], v + "%"] },
+              tooltip: { callbacks: { label: (ctx) => `${ctx.dataset._amt[ctx.dataIndex]} · ${ctx.parsed.y}%` } } } },
+        });
+      }
+    }
+
+    function renderTrend(summaries, limitByName) {
+      const dark = currentTheme() === "dark";
+      const txt = dark ? "#e8eaed" : "#191f28";
+      const grid = dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)";
+      const rows = [...summaries].sort((a, b) => a.date.localeCompare(b.date)).slice(-14);
+      const names = Object.keys(limitByName);
+      const labels = rows.map((s) => s.date.slice(5));
+      const datasets = names.map((nm, i) => {
+        const totals = rows.map((s) => { const n = s.nutrients.find((x) => x.name === nm); return n ? n.total : 0; });
+        const L = limitByName[nm].limit;
+        return {
+          label: nm,
+          data: totals.map((v) => (L ? Math.round((v / L) * 100) : 0)),
+          _totals: totals, _unit: limitByName[nm].unit,
+          borderColor: PALETTE[i % PALETTE.length], backgroundColor: PALETTE[i % PALETTE.length], tension: 0.3, pointRadius: 2, borderWidth: 2,
+        };
+      });
+      if (mTrendChart) mTrendChart.destroy();
+      mTrendChart = new Chart(document.getElementById("mTrend"), {
+        type: "line", data: { labels, datasets },
+        options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+          scales: { x: { grid: { display: false }, ticks: { color: txt, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+            y: { beginAtZero: true, grace: "10%", title: { display: true, text: "상한 대비 (%)", color: txt }, grid: { color: grid }, ticks: { color: txt } } },
+          plugins: { legend: { position: "top", labels: { color: txt, boxWidth: 12, boxHeight: 12 } }, datalabels: { display: false },
+            hLine: { value: 100, label: "상한 100%" },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.dataset._totals[ctx.dataIndex]}${ctx.dataset._unit} · ${ctx.raw}%` } } } },
+      });
+    }
+
+    function renderMNotis() {
+      const pages = Math.max(1, Math.ceil(mNotis.length / M_NOTI_PER));
+      mNotiPage = Math.min(mNotiPage, pages);
+      const slice = mNotis.slice((mNotiPage - 1) * M_NOTI_PER, mNotiPage * M_NOTI_PER);
+      document.getElementById("mNotis").innerHTML = slice.length
+        ? slice.map((n) => `<li class="list-group-item d-flex align-items-center ${n.is_read ? "text-muted" : ""}">
+            <span class="badge-cell">${notiBadge(n.type)}</span><span class="me-2 text-nowrap">${n.date}</span><small class="text-muted">${notiText(n.content)}</small></li>`).join("")
+        : "<li class='list-group-item text-muted'>알림 없음</li>";
+      document.getElementById("mNotisPager").innerHTML = mNotis.length > M_NOTI_PER
+        ? `<button class="icon-btn" ${mNotiPage <= 1 ? "disabled" : ""} onclick="mNotiGo(${mNotiPage - 1})">‹</button>
+           <span class="text-muted small">${mNotiPage} / ${pages}</span>
+           <button class="icon-btn" ${mNotiPage >= pages ? "disabled" : ""} onclick="mNotiGo(${mNotiPage + 1})">›</button>` : "";
+    }
+    function mNotiGo(p) { mNotiPage = p; renderMNotis(); }
+
+    function renderCat(fc) {
+      const box = document.getElementById("catChart");
+      if (!box) return;  // 빈 데이터로 캔버스가 제거된 경우(테마 재렌더 시) 무시
+      if (!fc.length) { box.parentElement.innerHTML = "<p class='text-muted mb-0'>섭취 기록이 없습니다.</p>"; return; }
+      const dark = currentTheme() === "dark";
+      if (catChartObj) catChartObj.destroy();
+      catChartObj = new Chart(box, {
+        type: "doughnut",
+        data: { labels: fc.map((x) => x.category), datasets: [{ data: fc.map((x) => x.count), backgroundColor: fc.map((_, i) => PALETTE[i % PALETTE.length]) }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { boxWidth: 12, boxHeight: 12, padding: 10, color: dark ? "#e8eaed" : "#191f28" } },
+            datalabels: { color: "#fff", font: { weight: "700" }, formatter: (v, ctx) => { const t = ctx.dataset.data.reduce((a, b) => a + b, 0); return v / t >= 0.08 ? Math.round((v / t) * 100) + "%" : ""; } },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}건` } },
+          } },
+      });
+    }
+    // 다크모드 토글: 전 데이터 재요청 없이 캐시된 detail로 차트만 재렌더
+    window.onThemeChange = () => {
+      if (!detail) return;
+      renderForDate();
+      renderTrend(detail.summaries || [], allLimits);
+      renderCat(detail.food_categories || []);
+    };
+    init();
+  </script>
+</body>
+</html>
