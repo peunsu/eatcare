@@ -1,4 +1,3 @@
-"""사용자 일일 영양소 현황/위험도 리포트."""
 from datetime import date as date_type, timedelta
 
 from fastapi import APIRouter, Depends, Query
@@ -18,7 +17,7 @@ router = APIRouter(prefix="/api/reports", tags=["reports"])
 @router.get("/trend")
 def trend(days: int = Query(14, ge=1, le=90), db: Session = Depends(get_db),
           me: Member = Depends(get_current_member)):
-    """최근 N일 일자별 영양소 누적량/위험도 추이. 기록 없는 날은 0/정상."""
+    """최근 N일 영양소 누적량/위험도 추이."""
     end = date_type.today()
     start = end - timedelta(days=days - 1)
     dates = [start + timedelta(days=i) for i in range(days)]
@@ -52,14 +51,12 @@ def trend(days: int = Query(14, ge=1, le=90), db: Session = Depends(get_db),
 def daily_report(date: date_type | None = None, db: Session = Depends(get_db),
                  me: Member = Depends(get_current_member)):
     target = date or date_type.today()
-    # 조회 시에는 요약 값만 최신화하고 알림은 건드리지 않음(알림 생성/리셋 방지)
     recompute_daily_summary(db, me.code, target, emit_notifications=False)
 
     totals = compute_daily_nutrients(db, me.code, target)
     thresholds = get_member_thresholds(db, me.code)
     risk, _ = evaluate_risk(thresholds, totals)
 
-    # 표준 상한(질환 정의) — 모든 대상 영양소에 적용. 모니터링 여부는 회원 질환에 따름.
     std_limit = {d.nutrient_code: d.daily_limit for d in db.query(Disease).all()}
     monitored = {t["nutrient_code"] for t in thresholds}
     nut_by_code = {n.code: n for n in db.query(Nutrient).all()}

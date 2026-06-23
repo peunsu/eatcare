@@ -1,8 +1,4 @@
-"""매일 자정 배치: 전 활성 회원의 '전날' 일일요약·위험도·알림을 확정한다.
-
-cron 예) 0 0 * * *  → 자정에 어제치 요약을 마감. 앱 사용/조회 여부와 무관하게 알림 보장.
-기존 recompute_daily_summary 로직을 그대로 재사용(위험도 규칙 단일 소스).
-"""
+"""매일 자정에 일일 요약 생성하는 스크립트. cron job 에서 실행됨."""
 import sys
 import os
 from datetime import date, timedelta, datetime
@@ -15,7 +11,7 @@ from app.services.nutrition import recompute_daily_summary
 
 
 def main(target: date | None = None):
-    target = target or (date.today() - timedelta(days=1))  # 어제(완료된 하루)
+    target = target or (date.today() - timedelta(days=1))
     db = SessionLocal()
     try:
         codes = [
@@ -29,7 +25,7 @@ def main(target: date | None = None):
     db = SessionLocal()
     try:
         for code in codes:
-            s = recompute_daily_summary(db, code, target)  # emit_notifications=True, sent_at=now(≈자정)
+            s = recompute_daily_summary(db, code, target)  # emit_notifications=True, sent_at=now
             risk[s.risk] = risk.get(s.risk, 0) + 1
     finally:
         db.close()
@@ -37,6 +33,5 @@ def main(target: date | None = None):
 
 
 if __name__ == "__main__":
-    # 인자로 날짜 지정 가능(YYYY-MM-DD), 없으면 어제
     tgt = date.fromisoformat(sys.argv[1]) if len(sys.argv) > 1 else None
     main(tgt)

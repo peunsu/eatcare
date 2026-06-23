@@ -1,4 +1,3 @@
-"""식품 검색 및 식단기록 관리. 기록 변경 시 해당 날짜 요약/위험도/알림 재계산."""
 from datetime import datetime, timedelta, date as date_type
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -17,7 +16,7 @@ router = APIRouter(prefix="/api/diet", tags=["diet"])
 @router.get("/category-summary")
 def category_summary(days: int | None = Query(None, ge=1, le=3650),
                      db: Session = Depends(get_db), me: Member = Depends(get_current_member)):
-    """본인이 섭취한 식품을 대분류별 기록 수로 집계(상위 8). days 지정 시 최근 N일만. 반환: [{category, count}]."""
+    """본인이 섭취한 식품을 대분류별 기록 수로 집계. days 지정 시 최근 N일만."""
     where = "dr.회원코드 = :m"
     params = {"m": me.code}
     if days:
@@ -37,7 +36,7 @@ def category_summary(days: int | None = Query(None, ge=1, le=3650),
 @router.get("/foods", response_model=list[FoodOut])
 def search_foods(q: str = Query("", description="식품명 검색어"), limit: int = 20,
                  db: Session = Depends(get_db), me: Member = Depends(get_current_member)):
-    # 공백을 무시하고 매칭(저장값의 공백 제거 후 비교). 순서·붙여쓰기 달라도 매칭. 짧은 이름 우선.
+    # 공백을 무시하고 검색. 짧은 검색어를 우선으로 표출
     query = db.query(Food)
     for tok in (q or "").split():
         query = query.filter(Food.search_name.like(f"%{tok}%"))
@@ -50,7 +49,7 @@ def _to_out(db, r: DietRecord) -> DietRecordOut:
 
 
 def _to_out_batch(db, records: list[DietRecord]) -> list[DietRecordOut]:
-    """여러 기록을 식품/영양소 일괄 조회로 변환(N+1 제거). 기록당 2쿼리 → 전체 2쿼리."""
+    """여러 기록을 식품/영양소 일괄 조회로 변환."""
     if not records:
         return []
     codes = list({r.food_code for r in records})
@@ -84,7 +83,6 @@ def add_record(req: DietRecordIn, db: Session = Depends(get_db), me: Member = De
     db.add(rec)
     db.commit()
     db.refresh(rec)
-    # 위험도/요약만 즉시 갱신, 알림은 자정 배치에서만 발송
     recompute_daily_summary(db, me.code, when.date(), emit_notifications=False)
     return _to_out(db, rec)
 
@@ -108,6 +106,5 @@ def delete_record(code: int, db: Session = Depends(get_db), me: Member = Depends
     when = rec.recorded_at.date()
     db.delete(rec)
     db.commit()
-    # 위험도/요약만 즉시 갱신, 알림은 자정 배치에서만 발송
     recompute_daily_summary(db, me.code, when, emit_notifications=False)
     return {"ok": True}

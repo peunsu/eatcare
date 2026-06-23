@@ -1,4 +1,3 @@
-"""회원가입 / 로그인."""
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,7 +30,6 @@ def signup(req: SignupRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenOut)
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # username 필드에 이메일 입력 (앞뒤 공백 제거 — 모바일 자동완성/붙여넣기 대비)
     email = form.username.strip()
     member = db.query(Member).filter(Member.email == email).first()
     if not member or not verify_password(form.password.strip(), member.password):

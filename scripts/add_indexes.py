@@ -6,8 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import engine
 
-# 멱등 DDL (MariaDB 10.5+: IF NOT EXISTS 지원)
-# 검색명 = 공백 제거 STORED 생성 컬럼 → 검색 시 REPLACE 재계산 없이 인덱스 스캔
+# 식품명에서 공백을 제거하여 검색명 칼럼 생성 -> 검색 시 인덱스로 사용
 STATEMENTS = [
     "ALTER TABLE FOOD ADD COLUMN IF NOT EXISTS 검색명 VARCHAR(255) AS (REPLACE(식품명, ' ', '')) STORED",
     "CREATE INDEX IF NOT EXISTS idx_food_category ON FOOD(대분류)",

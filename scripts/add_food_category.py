@@ -1,4 +1,3 @@
-"""기존 FOOD에 대분류 컬럼 추가 + CSV(식품대분류명)로 백필. 멱등."""
 import sys
 import os
 
@@ -38,7 +37,7 @@ def main():
         filled = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM FOOD")
         total = cur.fetchone()[0]
-        print(f"대분류 채워진 FOOD: {filled:,} / {total:,}")
+        print(f"대분류 채워진 FOOD 개수: {filled:,} / {total:,}")
     finally:
         raw.close()
 

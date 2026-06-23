@@ -1,4 +1,3 @@
-"""인증: 비밀번호 해시(bcrypt) + JWT 발급/검증 + FastAPI 의존성."""
 from datetime import datetime, timedelta, timezone
 
 import bcrypt

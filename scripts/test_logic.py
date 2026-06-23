@@ -1,4 +1,3 @@
-"""핵심 로직 검증: 당뇨+고혈압 회원이 당류>50g & 나트륨>2000mg 섭취 → '위험' + DANGER 알림."""
 import sys
 import os
 from datetime import date, datetime
@@ -11,14 +10,14 @@ from app.services.nutrition import recompute_daily_summary
 from app.auth import hash_password
 
 TEST_EMAIL = "test_logic@nutrition.local"
-FOOD_CODE = "D202-120000000-1180"  # 당류 5.75/100g, 나트륨 321/100g
-AMOUNT = 1000.0  # g → 당류 57.5, 나트륨 3210
+FOOD_CODE = "D202-120000000-1180"
+AMOUNT = 1000.0
 
 
 def cleanup(db):
     m = db.query(Member).filter(Member.email == TEST_EMAIL).first()
     if m:
-        db.delete(m)  # cascade로 식단/요약/알림 삭제
+        db.delete(m)
         db.commit()
 
 
@@ -49,11 +48,11 @@ def main():
         print("위험도:", summary.risk)
         print("알림:", [(n.type, n.content) for n in notis])
 
-        assert totals.get("당류", 0) > 50, "당류 초과 실패"
-        assert totals.get("나트륨", 0) > 2000, "나트륨 초과 실패"
-        assert summary.risk == "위험", f"위험도 기대 '위험' 실제 '{summary.risk}'"
-        assert len(notis) == 1 and notis[0].type == "DANGER", "DANGER 알림 1건 기대"
-        print("\n✅ 검증 통과: 당류/나트륨 초과 2건 → '위험' + DANGER 알림")
+        assert totals.get("당류", 0) > 50, "당류 초과 검출 실패"
+        assert totals.get("나트륨", 0) > 2000, "나트륨 초과 검출 실패"
+        assert summary.risk == "위험", f"위험도 '위험'인데 실제 위험도는 '{summary.risk}'"
+        assert len(notis) == 1 and notis[0].type == "DANGER", "DANGER 알림 1건이어야 함"
+        print("\n검증 통과: 당류/나트륨 초과 2건 -> '위험' + DANGER 알림")
     finally:
         cleanup(db)
         db.close()

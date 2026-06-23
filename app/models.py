@@ -1,4 +1,3 @@
-"""ORM 모델 (영문 속성명 → 한글 컬럼명 매핑). 테이블/컬럼명은 제안서 스키마와 동일."""
 from sqlalchemy import (
     Column, Integer, String, Float, Date, DateTime, Boolean, Enum,
     ForeignKey, UniqueConstraint, Index, Computed,
@@ -22,7 +21,6 @@ class Food(Base):
     base_amount = Column("기준량", Float, nullable=False, default=100)
     base_unit = Column("기준단위", String(20), nullable=False, default="g")
     category = Column("대분류", String(50))
-    # 공백 제거 검색용(생성 컬럼). 띄어쓰기 무시 검색 + 인덱스 활용.
     search_name = Column("검색명", String(255), Computed("REPLACE(식품명, ' ', '')", persisted=True))
 
     nutrients = relationship("FoodNutrient", back_populates="food")

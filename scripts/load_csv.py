@@ -1,10 +1,4 @@
-"""식약처 식품영양성분 CSV → FOOD / FOOD_NUTRIENT 적재.
-
-- 인코딩: CP949(EUC-KR)
-- 기준량 '100g' → 기준량=100.0 / 기준단위='g' 분리
-- 영양소 3종(당류/나트륨/지방)만 적재, 빈 값은 제외
-- 식품코드 중복은 INSERT IGNORE 로 무시
-"""
+"""CSV 로드"""
 import sys
 import os
 import re
@@ -21,14 +15,12 @@ CSV_PATH = os.path.expanduser(
     "~/workspace/data/전국통합식품영양성분정보_음식_표준데이터.csv"
 )
 
-# CSV 컬럼명 → 영양소명
 NUTRIENT_COLS = {"당류": "당류(g)", "나트륨": "나트륨(mg)", "지방": "지방(g)"}
 
 AMOUNT_RE = re.compile(r"([\d.]+)\s*([^\d.\s]+)?")
 
 
 def parse_base_amount(raw):
-    """'100g' → (100.0, 'g'). 파싱 실패 시 (100.0, 'g')."""
     if raw is None or (isinstance(raw, float) and math.isnan(raw)):
         return 100.0, "g"
     m = AMOUNT_RE.search(str(raw).strip())
@@ -40,7 +32,6 @@ def parse_base_amount(raw):
 
 
 def main():
-    # 영양소명 → 코드
     db = SessionLocal()
     try:
         nut_code = {n.name: n.code for n in db.query(Nutrient).all()}
@@ -48,7 +39,7 @@ def main():
         db.close()
     for name in NUTRIENT_COLS:
         if name not in nut_code:
-            raise SystemExit(f"NUTRIENT '{name}' 가 DB에 없습니다. seed.py 를 먼저 실행하세요.")
+            raise SystemExit(f"NUTRIENT '{name}' 가 DB에 없습니다.")
 
     print(f"CSV 읽는 중: {CSV_PATH}")
     df = pd.read_csv(CSV_PATH, encoding="cp949", dtype=str)
@@ -78,7 +69,7 @@ def main():
                 continue
             food_nutrients.append((code, nut_code[nut_name], amt))
 
-    print(f"  FOOD: {len(foods):,} 건, FOOD_NUTRIENT: {len(food_nutrients):,} 건 적재 시작")
+    print(f"  FOOD: {len(foods):,} 건, FOOD_NUTRIENT: {len(food_nutrients):,} 건")
 
     raw = engine.raw_connection()
     try:
@@ -95,7 +86,7 @@ def main():
     finally:
         raw.close()
 
-    print("=== 적재 완료 ===")
+    print("=== 저장 완료 ===")
 
 
 if __name__ == "__main__":

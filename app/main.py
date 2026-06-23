@@ -1,4 +1,3 @@
-"""FastAPI 진입점: 라우터 등록 + 정적 프론트엔드 서빙."""
 import os
 
 from fastapi import FastAPI
@@ -28,7 +27,6 @@ app.include_router(foods.router)
 def health():
     return {"status": "ok"}
 
-# 정적 프론트엔드 (frontend/ 디렉토리를 / 로 서빙)
 _FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 if os.path.isdir(_FRONTEND):
     app.mount("/", StaticFiles(directory=_FRONTEND, html=True), name="frontend")

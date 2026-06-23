@@ -1,4 +1,3 @@
-"""SQLAlchemy 엔진 / 세션 / Base."""
 import sys
 import os
 
@@ -15,7 +14,6 @@ Base = declarative_base()
 
 
 def get_db():
-    """FastAPI 의존성: 요청마다 세션 제공."""
     db = SessionLocal()
     try:
         yield db

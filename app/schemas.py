@@ -1,4 +1,3 @@
-"""Pydantic 요청/응답 스키마."""
 from datetime import date, datetime
 from typing import Optional, List
 

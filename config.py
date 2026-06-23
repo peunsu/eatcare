@@ -1,7 +1,5 @@
-"""애플리케이션 설정."""
 import os
 
-# DB 접속 (기존 MariaDB, 계정 user/user)
 DB_USER = os.getenv("DB_USER", "user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "user")
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")

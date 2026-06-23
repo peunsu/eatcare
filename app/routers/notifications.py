@@ -1,4 +1,3 @@
-"""사용자 알림함."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -19,7 +18,7 @@ def list_notifications(unread_only: bool = False, db: Session = Depends(get_db),
         .filter(DailySummary.member_code == me.code)
     )
     if unread_only:
-        q = q.filter(Notification.is_read == False)  # noqa: E712
+        q = q.filter(Notification.is_read == False)
     rows = q.order_by(Notification.sent_at.desc()).all()
     return [NotificationOut(code=n.code, type=n.type, content=n.content, sent_at=n.sent_at,
                             is_read=n.is_read, date=s.date) for n, s in rows]

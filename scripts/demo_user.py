@@ -1,7 +1,4 @@
-"""데모 사용자 계정(데이터 포함) 1명 생성. 멱등(demo@nutrition.local 재생성).
-
-gen_data 의 끼니 템플릿/목표 섭취 모델을 재사용해 최근 DAYS일치 식단을 채운다.
-"""
+"""데모 사용자 계정 생성"""
 import sys
 import os
 import random
@@ -45,7 +42,7 @@ def main():
     finally:
         db.close()
 
-    # 식단 기록 생성 (매일 성실하게 기록하는 데모)
+    # 식단 기록 생성
     conn = engine.raw_connection()
     try:
         name2code, lim = G.load_nutrients(conn)
@@ -66,13 +63,12 @@ def main():
     finally:
         conn.close()
 
-    # 일일요약/위험도/알림 재계산 (해당 회원 120일)
+    # 일일요약/위험도/알림 재계산
     db = SessionLocal()
     try:
         risk = {"정상": 0, "주의": 0, "위험": 0, "경고": 0}
         for k in range(DAYS):
             day = today - timedelta(days=k)
-            # 알림 발송일시를 해당 날짜 저녁으로 지정(시간순 정렬이 맞도록)
             notified = datetime.combine(day, datetime.min.time()) + timedelta(hours=21)
             s = recompute_daily_summary(db, code, day, notified_at=notified)
             risk[s.risk] = risk.get(s.risk, 0) + 1

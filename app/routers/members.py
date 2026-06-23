@@ -1,4 +1,3 @@
-"""회원 프로필 및 기저질환 관리."""
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException

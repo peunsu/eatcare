@@ -1,4 +1,3 @@
-"""기준 데이터 시드: NUTRIENT 3종, DISEASE 3종, 운영자 계정. 멱등(idempotent)."""
 import sys
 import os
 from datetime import date
@@ -12,7 +11,7 @@ from app.auth import hash_password
 # (영양소명, 단위)
 NUTRIENTS = [("당류", "g"), ("나트륨", "mg"), ("지방", "g")]
 
-# (질환명, 기준영양소명, 일일상한값)  — 제안서 Decision Table 기준
+# (질환명, 기준영양소명, 일일상한값)
 DISEASES = [("당뇨", "당류", 50.0), ("고혈압", "나트륨", 2000.0), ("고지혈증", "지방", 60.0)]
 
 ADMIN = {"email": "admin@nutrition.local", "password": "admin1234", "name": "운영자"}
@@ -45,11 +44,10 @@ def main():
             ))
         db.commit()
 
-        print("=== seed 완료 ===")
         for n in db.query(Nutrient).all():
             print(f"  NUTRIENT {n.code}: {n.name} ({n.unit})")
         for d in db.query(Disease).all():
-            print(f"  DISEASE  {d.code}: {d.name} → 영양소{d.nutrient_code} 상한 {d.daily_limit}")
+            print(f"  DISEASE  {d.code}: {d.name} -> 영양소{d.nutrient_code} 기준치 {d.daily_limit}")
         print(f"  ADMIN: {ADMIN['email']} / {ADMIN['password']}")
     finally:
         db.close()

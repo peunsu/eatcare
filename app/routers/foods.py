@@ -1,4 +1,3 @@
-"""식품 정보 검색 (로그인 필요). 식품의 영양성분을 조회한다."""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,8 +12,7 @@ router = APIRouter(prefix="/api/foods", tags=["foods"])
 @router.get("/search")
 def search_foods(q: str = Query("", description="식품명 검색어"), limit: int = 20,
                  db: Session = Depends(get_db), me: Member = Depends(get_current_member)):
-    """식품명 검색: 공백을 무시하고 매칭(저장값의 공백 제거 후 비교). 짧은 이름 우선.
-    예) DB '바나나 우유' ↔ 검색 '바나나우유'/'바나나 우유'/'우유 바나나' 모두 매칭."""
+    """식품명 검색은 공백 무시, 짧은 이름 우선."""
     query = db.query(Food)
     for tok in (q or "").split():
         query = query.filter(Food.search_name.like(f"%{tok}%"))
@@ -25,7 +23,7 @@ def search_foods(q: str = Query("", description="식품명 검색어"), limit: i
 
 @router.get("/{code}/distribution")
 def food_distribution(code: str, db: Session = Depends(get_db), me: Member = Depends(get_current_member)):
-    """같은 대분류 식품들의 100g당 영양소 함량 분포 + 이 식품의 값/상위 백분위. 영양소별 반환."""
+    """같은 대분류 식품들의 100g당 영양소 함량 분포 및 해당 식품의 백분위 값 계산."""
     from sqlalchemy import text
     f = db.query(Food).filter(Food.code == code).first()
     if not f:
@@ -55,7 +53,6 @@ def food_distribution(code: str, db: Session = Depends(get_db), me: Member = Dep
             values = [float(r.v) for r in vrows]
         total = len(values)
         greater = sum(1 for v in values if v > val)
-        # 상위 백분위: 이 식품보다 높은 식품 비율 (작을수록 상위)
         percentile = round((greater + 0.5) / total * 100, 1) if total else None
         sample = values
         if total > CAP:
@@ -71,7 +68,7 @@ def food_distribution(code: str, db: Session = Depends(get_db), me: Member = Dep
 
 @router.get("/{code}")
 def food_detail(code: str, db: Session = Depends(get_db), me: Member = Depends(get_current_member)):
-    """식품 상세: 기준량당 영양성분 + 질환별 일일 상한(해당 영양소)."""
+    """식품 상세 정보."""
     f = db.query(Food).filter(Food.code == code).first()
     if not f:
         raise HTTPException(status_code=404, detail="식품을 찾을 수 없습니다.")
@@ -82,7 +79,6 @@ def food_detail(code: str, db: Session = Depends(get_db), me: Member = Depends(g
         .order_by(Nutrient.code)
         .all()
     )
-    # 질환 기준 영양소별 일일 상한 (당류/나트륨/지방 등) → 강조용
     limits = {}
     for d in db.query(Disease).all():
         if d.nutrient and d.nutrient.name not in limits:

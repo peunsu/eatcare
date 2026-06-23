@@ -1,12 +1,4 @@
-"""현실적·대량 가상 데이터 생성.
-
-- 기존 USER 회원(가상 데이터) 전체 삭제 후 재생성(멱등). 관리자 계정은 보존.
-- 끼니 템플릿(아침/점심/저녁/간식)으로 식품을 고르고(분류 현실성),
-  영양소 섭취량은 "목표 섭취 모델"로 상한 근처에 분포하도록 식품량을 역산(분포 균형).
-- 일일요약/영양소/알림은 set-기반 SQL 1회 집계 후 일괄 삽입(앱 위험도 로직 재사용).
-
-`python gen_data.py --stats` : DB에 쓰지 않고 영양소 섭취 분포만 시뮬레이션·출력(보정용).
-"""
+"""가상 데이터 생성"""
 import sys
 import os
 import math
@@ -23,17 +15,14 @@ from app.services.nutrition import evaluate_risk, _build_message, RISK_TO_NOTI_T
 
 random.seed(7)
 
-# ===== 규모 =====
 N_MEMBERS = 400
 DAYS = 120
 DOMAIN = "@sample.local"
 PASSWORD = "sample1234"
 BATCH = 5000
 
-# ===== 목표 섭취 모델 보정값 =====
-# 영양소별 1일 목표 섭취량 = 상한 × 회원기준치(BASE_MED 중심 로그정규) × 당일변동(중앙값1)
-# 교차기여(한 식품이 여러 영양소 함유) 때문에 실제 평균은 목표보다 높게 나옴 → BASE_MED로 보정.
-BASE_MED = {"당류": 0.82, "나트륨": 0.40, "지방": 1.85}
+
+BASE_MED = {"당류": 0.82, "나트륨": 0.40, "지방": 1.85}  # 중앙값
 SIGMA_M = 0.30   # 회원 간 편차
 SIGMA_D = 0.45   # 같은 회원의 일별 편차
 AMT_MIN, AMT_MAX = 15.0, 700.0
@@ -47,7 +36,7 @@ def rand_name():
     return random.choice(SURNAMES) + random.choice(GIVEN1) + random.choice(GIVEN2)
 
 
-# 끼니 슬롯 → 식품 분류(실제 DB 대분류명)
+# 대분류 매핑
 SLOT_CATS = {
     "주식": ["밥류", "면 및 만두류", "죽 및 스프류"],
     "국물": ["국 및 탕류", "찌개 및 전골류"],
@@ -62,7 +51,7 @@ DISEASE_MULT = {"고혈압": 0.95, "고지혈증": 0.85, "당뇨": 0.7}
 
 
 def load_nutrients(conn):
-    """{영양소명: 코드}, {코드: 상한값} 반환(질환 기준)."""
+    """{영양소명: 코드}, {코드: 상한값}."""
     cur = conn.cursor()
     cur.execute("SELECT 영양소코드, 영양소명 FROM NUTRIENT")
     name2code = {nm: code for code, nm in cur.fetchall()}
@@ -72,7 +61,7 @@ def load_nutrients(conn):
 
 
 def build_food_pools(conn, nut_codes):
-    """분류별 식품 + 영양소 벡터. {분류: [(식품코드, 기준량, {영양소코드: 함량}), ...]}."""
+    """{분류: [(식품코드, 기준량, {영양소코드: 함량}), ...]}."""
     cur = conn.cursor()
     cur.execute(
         """SELECT f.식품코드, f.기준량, f.대분류 FROM FOOD f
@@ -102,7 +91,7 @@ def pick(pools, slot):
 
 
 def meal_slots(meal):
-    """끼니별 슬롯 시퀀스(현실적 구성)."""
+    """식사 구성 템플릿"""
     slots = []
     if meal == "아침":
         if random.random() < 0.5:
@@ -125,7 +114,7 @@ def meal_slots(meal):
 
 
 def dominant(vec, base, lim):
-    """식품이 상한 대비 가장 짙은 영양소 코드(없으면 None)."""
+    """상한값 대비 섭취량이 가장 높은 영양소코드"""
     best, best_load = None, 0.0
     for nc, L in lim.items():
         a = vec.get(nc, 0.0)
@@ -138,7 +127,7 @@ def dominant(vec, base, lim):
 
 
 def gen_day(pools, lim, mbase, meals):
-    """하루치 (식품 슬롯 선택 → 목표 섭취 기반 식품량 역산). 반환: [(meal, code, amount, vec, base)]."""
+    """[(meal, code, amount, vec, base)]."""
     items = []  # [meal, code, base, vec]
     for meal in meals:
         for slot in meal_slots(meal):
@@ -149,7 +138,7 @@ def gen_day(pools, lim, mbase, meals):
         return []
     # 영양소별 당일 목표 섭취량
     T = {nc: lim[nc] * mbase[nc] * random.lognormvariate(0, SIGMA_D) for nc in lim}
-    # 식품을 우세 영양소 그룹으로 분배
+    # 식품을 영양소 그룹으로 분배
     groups = {nc: [] for nc in lim}
     none = []
     for it in items:
@@ -173,7 +162,7 @@ def gen_day(pools, lim, mbase, meals):
 
 
 def member_baseline(lim, name2code):
-    """회원별 영양소 기준치(로그정규). {영양소코드: 배수}."""
+    """회원별 영양소 기준치. {영양소코드: 배수}."""
     mb = {}
     for name, code in name2code.items():
         if code in lim:
@@ -187,7 +176,6 @@ def meal_ts(day, meal):
         hours=random.randint(lo, hi), minutes=random.randint(0, 59))
 
 
-# ===================== 보정용 시뮬레이션(쓰기 없음) =====================
 def run_stats():
     conn = engine.raw_connection()
     try:
@@ -238,8 +226,8 @@ def run_stats():
               f"{pct(v,0.9)/L*100:>8.0f}{over:>8.0f}")
 
 
-# ===================== 실제 생성 =====================
 def create_members(db):
+    """멤버 생성"""
     diseases = db.query(Disease).all()
     pw = hash_password(PASSWORD)
     today = date.today()
@@ -268,6 +256,7 @@ def create_members(db):
 
 
 def gen_records(conn, member_ids, name2code, lim):
+    """식단 기록 생성"""
     cur = conn.cursor()
     pools = build_food_pools(conn, list(lim.keys()))
     today = date.today()
@@ -296,6 +285,7 @@ def gen_records(conn, member_ids, name2code, lim):
 
 
 def build_thresholds(conn):
+    """상한값 계산"""
     cur = conn.cursor()
     cur.execute(
         """SELECT md.회원코드, d.질환명, d.영양소코드, n.영양소명, n.단위, d.일일상한값
@@ -313,6 +303,7 @@ def build_thresholds(conn):
 
 
 def gen_summaries(conn):
+    """일일요약 계산"""
     cur = conn.cursor()
     cur.execute(
         """SELECT dr.회원코드, DATE(dr.기록일시) AS d, fn.영양소코드,
@@ -346,7 +337,6 @@ def gen_summaries(conn):
         sc = code_of[(mc, d)]
         for nc, total in tmap.items():
             sn_rows.append((sc, nc, round(total, 4)))
-        # 위험도와 무관하게 자정 배치가 그날 요약 기준 1건 발송(전날 요약 → 다음날 00:00)
         noti_rows.append((sc, RISK_TO_NOTI_TYPE[risk], _build_message(risk, exceeded),
                           datetime.combine(d + timedelta(days=1), datetime.min.time()), 0))
     ins_sn = "INSERT INTO SUMMARY_NUTRIENT (요약코드, 영양소코드, 누적량) VALUES (%s, %s, %s)"
@@ -365,7 +355,7 @@ def main():
         for m in old:
             db.delete(m)
         db.commit()
-        print(f"기존 USER 회원 {len(old)}명 정리(연관 데이터 CASCADE 삭제)")
+        print(f"기존 회원 {len(old)}명 정리")
         n = create_members(db)
         ids = [r[0] for r in db.execute(text("SELECT 회원코드 FROM MEMBER WHERE 역할='USER'")).fetchall()]
         print(f"회원 {n}명 생성")
@@ -378,7 +368,7 @@ def main():
         total = gen_records(conn, ids, name2code, lim)
         print(f"식단 기록 {total:,}건 생성")
         risk_count, n_summary, n_noti = gen_summaries(conn)
-        print(f"일일요약 {n_summary:,}건 · 알림 {n_noti:,}건 생성")
+        print(f"일일요약 {n_summary:,}건, 알림 {n_noti:,}건 생성")
         print("위험도 분포:", risk_count)
         print(f"\n=== 완료 (회원 {N_MEMBERS}명 / 이력 {DAYS}일 / 비밀번호 {PASSWORD}) ===")
     finally:

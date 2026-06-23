@@ -5,7 +5,7 @@ B=http://localhost:8000
 EMAIL="smoke_$(date +%s)@test.local"
 echo "== signup =="
 TOK=$(curl -s -X POST $B/api/auth/signup -H 'Content-Type: application/json' \
-  -d "{\"name\":\"스모크\",\"email\":\"$EMAIL\",\"password\":\"pass1234\",\"birth_year\":1980,\"gender\":\"F\"}" \
+  -d "{\"name\":\"Smoke\",\"email\":\"$EMAIL\",\"password\":\"pass1234\",\"birth_year\":1980,\"gender\":\"F\"}" \
   | python -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 echo "token: ${TOK:0:20}..."
 H="Authorization: Bearer $TOK"

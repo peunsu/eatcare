@@ -1,4 +1,3 @@
-"""운영자: 그룹 통계 리포트 + (이름/이메일 등 식별정보 제외) 회원 상세 데이터 열람."""
 from datetime import date as date_type, timedelta
 
 from fastapi import APIRouter, Depends, Query, HTTPException
@@ -18,7 +17,6 @@ from app.services.stats import (
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-# 질환 우선순위 가중치(당뇨>고혈압>고지혈증). 정렬 점수 + 뱃지 표시 순서에 사용.
 DISEASE_WEIGHT = {"당뇨": 4, "고혈압": 2, "고지혈증": 1}
 
 
@@ -37,7 +35,6 @@ def group_report(
     start = start or (end - timedelta(days=30))
     members = filter_members(db, age_min, age_max, gender, disease_code)
     codes = [m.code for m in members]
-    # 무거운 집계/공통 목록을 1회만 계산해 통계 함수들에 공유(리포트 내 중복 GROUP BY·조회 제거)
     avg_map = _member_nutrient_avg(db, codes, start, end) if codes else {}
     nutrients = db.query(Nutrient).order_by(Nutrient.code).all()
     disease_nutrients = db.query(Disease, Nutrient).join(Nutrient, Nutrient.code == Disease.nutrient_code).all()
@@ -66,8 +63,7 @@ def _member_diseases(db, code):
 
 
 def _latest_summaries(db, codes):
-    """회원별 최신 일일요약 {회원코드: (날짜, 위험도)}.
-    전체 요약을 적재하지 않고 윈도우 함수로 회원당 1행만 조회(정렬·표시 공용)."""
+    """회원별 최신 일일요약 조회"""
     if not codes:
         return {}
     ph = ",".join(str(int(c)) for c in codes)
@@ -96,7 +92,7 @@ def list_members(
     db: Session = Depends(get_db),
     _: Member = Depends(require_admin),
 ):
-    """필터 조건에 맞는 회원 목록(식별정보 제외). 페이지네이션·정렬 지원."""
+    """필터 조건에 맞는 회원 목록(식별정보 제외). 페이지네이션 및 정렬 지원."""
     this_year = date_type.today().year
     members = filter_members(db, age_min, age_max, gender, disease_code)
     if sort == "risk":
@@ -105,7 +101,6 @@ def list_members(
         latest = {mc: rank.get(rk, -1) for mc, (_dt, rk) in lm.items()}
         members = sorted(members, key=lambda m: latest.get(m.code, -1), reverse=(order == "desc"))
     elif sort == "disease":
-        # 1순위 질환 개수, 2순위 가중치(당뇨>고혈압>고지혈증)로 정렬 → 개수별로 묶고 같은 개수는 조합 우선순위로
         codes = [m.code for m in members]
         dcount, dscore = {}, {}
         if codes:
@@ -133,7 +128,6 @@ def list_members(
     start = (page - 1) * page_size
     page_members = members[start:start + page_size]
     page_codes = [m.code for m in page_members]
-    # 최신 일일요약(회원당 1행) + 질환 일괄 조회
     latest_map = _latest_summaries(db, page_codes)
     disease_map: dict[int, list] = {}
     if page_codes:
@@ -143,7 +137,6 @@ def list_members(
             .filter(MemberDisease.member_code.in_(page_codes)).all()
         ):
             disease_map.setdefault(mc, []).append(nm)
-        # 뱃지도 동일 우선순위로 정렬(당뇨→고혈압→고지혈증)
         for names in disease_map.values():
             names.sort(key=lambda n: -DISEASE_WEIGHT.get(n, 0))
     out = []
@@ -171,7 +164,7 @@ def list_members(
 
 @router.get("/members/{code}")
 def member_detail(code: int, db: Session = Depends(get_db), _: Member = Depends(require_admin)):
-    """회원 상세(식별정보 제외): 프로필·질환·일일요약(영양소 누적)·식단기록."""
+    """회원 상세 정보(식별정보 제외)."""
     m = db.query(Member).filter(Member.code == code).first()
     if not m:
         raise HTTPException(status_code=404, detail="회원을 찾을 수 없습니다.")
@@ -184,7 +177,7 @@ def member_detail(code: int, db: Session = Depends(get_db), _: Member = Depends(
         .limit(30)
         .all()
     )
-    # 요약별 영양소 누적량 일괄 조회(N+1 제거): 요약 30건 루프 30쿼리 → 1쿼리
+    
     summ_codes = [s.code for s in summaries]
     sn_map: dict[int, list] = {}
     if summ_codes:
@@ -207,7 +200,7 @@ def member_detail(code: int, db: Session = Depends(get_db), _: Member = Depends(
         .limit(50)
         .all()
     )
-    # 식품별 영양소(섭취량 기준) 일괄 조회
+    
     rec_codes = [r.food_code for r, _ in records]
     fn_map = {}
     if rec_codes:
